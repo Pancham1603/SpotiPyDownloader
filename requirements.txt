@@ -10,7 +10,6 @@ distlib==0.3.1
 docutils==0.16
 entrypoints==0.3
 et-xmlfile==1.0.1
-face-recognition-models==0.3.0
 filelock==3.0.12
 Flask==1.1.2
 Flask-MySQL==1.5.1
@@ -51,16 +50,12 @@ pygame==2.0.0
 Pygments==2.7.2
 pyinstaller==4.0
 pyinstaller-hooks-contrib==2020.7
-PyMySQL==0.10.1
 pyparsing==2.4.7
-pypng==0.0.20
-PyQRCode==1.2.1
 PyQt5==5.15.0
 PyQt5-sip==12.8.1
 pyrsistent==0.16.0
 python-dateutil==2.8.1
 pytube==10.6.0
-PyYAML==5.3.1
 pyzmq==22.0.3
 QScintilla==2.11.5
 requests==2.24.0
