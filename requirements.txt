@@ -47,7 +47,6 @@ prometheus-client==0.9.0
 prompt-toolkit==3.0.17
 protobuf==3.14.0
 pycparser==2.20
-pycrossword==0.4.0.3
 pygame==2.0.0
 Pygments==2.7.2
 pyinstaller==4.0
