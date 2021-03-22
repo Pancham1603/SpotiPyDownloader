@@ -157,7 +157,11 @@ def check():
     if success:
         directory = f"{session['name']}'s Playlist"
         session['directory'] = directory
-        os.mkdir(directory)
+        try:
+            os.mkdir(directory)
+        except:
+            shutil.rmtree(directory)
+            os.mkdir(directory)
         base = 'https://www.youtube.com'
 
         for song in songs:
@@ -288,10 +292,16 @@ button {
 </html>"""
     message.add_alternative(html_message, subtype='html')
     password = "***REMOVED***"
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465)as smtp:
-        smtp.login('***REMOVED***', password)
-        smtp.send_message(message)
-
-    shutil.rmtree(f"{session['directory']}")
-    return send_file(return_data, mimetype='application/zip', as_attachment=True,
-                     attachment_filename=f"{session['name']}'s Playlist.zip")
+    try:
+        shutil.rmtree(f"{session['directory']}")
+        x = True
+        y = False
+        if x:
+            y = True
+            return send_file(return_data, mimetype='application/zip', as_attachment=True,
+                        attachment_filename=f"{session['name']}'s Playlist.zip")
+        if y:
+            return redirect('/')
+    except:
+        shutil.rmtree(f"{session['directory']}")
+        return redirect('/')
