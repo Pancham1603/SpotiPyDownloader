@@ -289,7 +289,7 @@ button {
     message.add_alternative(html_message, subtype='html')
     password = "***REMOVED***"
     with smtplib.SMTP_SSL('smtp.gmail.com', 465)as smtp:
-        smtp.login(message['from'], password)
+        smtp.login('***REMOVED***', password)
         smtp.send_message(message)
 
     shutil.rmtree(f"{session['directory']}")
