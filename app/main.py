@@ -177,7 +177,6 @@ def check():
                 os.rename(out_file, new_file)
             except FileExistsError:
                 pass
-
         file_paths = [] 
 
         for root, directories, files in os.walk(directory): 
