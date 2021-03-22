@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request,url_for,session,redirect, send_file
+from flask import Flask, render_template, request, url_for, session, redirect, send_file
 import smtplib
 import base64
 import requests
@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from pytube import YouTube
 from youtube_search import YoutubeSearch
 import os
-from zipfile import ZipFile 
+from zipfile import ZipFile
 import io
 import shutil
 import smtplib
@@ -15,6 +15,7 @@ from email.message import EmailMessage
 
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
+
 
 class SpotifyAPI(object):
     access_token = None
@@ -24,8 +25,8 @@ class SpotifyAPI(object):
     client_secret = None
     token_url = 'https://accounts.spotify.com/api/token'
 
-    def __init__(self,client_id,client_secret,*args,**kwargs):
-        super().__init__(*args,**kwargs)
+    def __init__(self, client_id, client_secret, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.client_id = client_id
         self.client_secret = client_secret
 
@@ -35,21 +36,21 @@ class SpotifyAPI(object):
         """
         client_id = self.client_id
         client_secret = self.client_secret
-        if client_secret == None or client_secret==None:
+        if client_secret == None or client_secret == None:
             raise Exception('You must set client_ID and client_secret')
         client_creds = f'{client_id}:{client_secret}'
         client_creds_base64 = base64.b64encode(client_creds.encode())
         return client_creds_base64.decode()
 
     def get_token_headers(self):
-        client_creds_base64 =self.get_client_credentials()
+        client_creds_base64 = self.get_client_credentials()
         return {
-            'Authorization':f'Basic {client_creds_base64}' 
+            'Authorization': f'Basic {client_creds_base64}'
         }
 
     def get_token_data(self):
         return {
-            'grant_type':'client_credentials'
+            'grant_type': 'client_credentials'
         }
 
     def perfom_auth(self):
@@ -57,8 +58,8 @@ class SpotifyAPI(object):
         token_data = self.get_token_data()
         token_headers = self.get_token_headers()
         r = requests.post(token_url, data=token_data, headers=token_headers)
-        if r.status_code not in range(200,299):
-                    raise Exception("Could not authenticate client.")
+        if r.status_code not in range(200, 299):
+            raise Exception("Could not authenticate client.")
         now = datetime.datetime.now()
         data = r.json()
         access_token = data['access_token']
@@ -73,10 +74,10 @@ class SpotifyAPI(object):
         token = self.access_token
         expires = self.access_token_expires
         now = datetime.datetime.now()
-        if expires<now:
+        if expires < now:
             self.perfom_auth()
             return self.get_access_token()
-        elif token==None:
+        elif token == None:
             self.perfom_auth()
             return self.get_access_token()
         return token
@@ -84,7 +85,7 @@ class SpotifyAPI(object):
     def search(self, query, search_type='artist'):
         access_token = self.get_access_token()
         headers = {
-            'Authorization':f'Bearer {access_token}'
+            'Authorization': f'Bearer {access_token}'
         }
         endpoint = 'https://api.spotify.com/v1/search'
         data = urlencode({
@@ -93,48 +94,51 @@ class SpotifyAPI(object):
         })
         print(data)
         lookup_url = f"{endpoint}?{data}"
-        r = requests.get(lookup_url,headers = headers)
+        r = requests.get(lookup_url, headers=headers)
         print(lookup_url)
-        if r.status_code not in range(200,299):
+        if r.status_code not in range(200, 299):
             return {}
         return r.json()
-    
-    def playlist(self, link,num,search_type='playlist'):
+
+    def playlist(self, link, num, search_type='playlist'):
         link_main = link[34:]
         target_URI = ''
         for char in link_main:
             if char != '?':
-                target_URI+=char
-            else: 
+                target_URI += char
+            else:
                 break
         access_token = self.get_access_token()
         headers = {
-            'Authorization':f'Bearer {access_token}'
+            'Authorization': f'Bearer {access_token}'
         }
         endpoint = 'https://api.spotify.com/v1/playlists/'
         append = f"/tracks?market=IN&fields=items(track(name%2Cartists))&limit={num}&offset=0"
         lookup_url = f"{endpoint}{target_URI}{append}"
-        r = requests.get(lookup_url,headers = headers)
-        if r.status_code not in range(200,299):
+        r = requests.get(lookup_url, headers=headers)
+        if r.status_code not in range(200, 299):
             return {}
         return r.json()
 
+
 app = Flask(__name__)
 app.secret_key = 'demo'
-spotify = SpotifyAPI(client_id,client_secret)
+spotify = SpotifyAPI(client_id, client_secret)
+
 
 @app.route('/')
 def initiation():
     return render_template("index.html")
 
-@app.route('/checkpoint', methods=['GET','POST'])
+
+@app.route('/checkpoint', methods=['GET', 'POST'])
 def check():
     user_data = request.form
     session['name'] = user_data['name']
     session['email'] = user_data['email']
     session['link'] = user_data['link']
     session['number_of_songs'] = user_data['num']
-    data = spotify.playlist(link=session['link'], num= session['number_of_songs'])
+    data = spotify.playlist(link=session['link'], num=session['number_of_songs'])
     songs = []
     for item in range(int(session['number_of_songs'])):
         try:
@@ -163,7 +167,7 @@ def check():
                 suffix = result[0]['url_suffix']
                 link = base + suffix
                 out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
-                base, ext = os.path.splitext(out_file) 
+                base, ext = os.path.splitext(out_file)
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
             except KeyError:
@@ -172,32 +176,32 @@ def check():
                 suffix = result[0]['url_suffix']
                 link = base + suffix
                 out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
-                base, ext = os.path.splitext(out_file) 
+                base, ext = os.path.splitext(out_file)
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
             except FileExistsError:
                 pass
-        file_paths = [] 
+        file_paths = []
 
-
-        for root, directories, files in os.walk(directory): 
-            for filename in files: 
-                filepath = os.path.join(root, filename) 
+        for root, directories, files in os.walk(directory):
+            for filename in files:
+                filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
 
-        with ZipFile(f"{session['name']}'s Playlist\{session['name']}'s Playlist.zip",'w') as zip: 
-            for file in file_paths: 
+        with ZipFile(f"{session['name']}'s Playlist\{session['name']}'s Playlist.zip", 'w') as zip:
+            for file in file_paths:
                 zip.write(file)
 
         print("--------------------------------")
-        print('All files zipped successfully!')		 
+        print('All files zipped successfully!')
         print("--------------------------------")
         print("Thankyou for using this service!")
         print("Made with ❤️ by Pancham Agarwal")
         print("--------------------------------")
     return redirect('/download')
 
-@app.route('/download',methods = ['GET','POST'])
+
+@app.route('/download', methods=['GET', 'POST'])
 def download():
     file_path = f"{session['directory']}\{session['directory']}.zip"
     return_data = io.BytesIO()
@@ -209,11 +213,12 @@ def download():
     message['from'] = '***REMOVED***'
     message['to'] = session['email']
     html_message = open('app\mail.html').read()
-    message.add_alternative(html_message,subtype='html')
+    message.add_alternative(html_message, subtype='html')
     password = "***REMOVED***"
-    with smtplib.SMTP_SSL('smtp.gmail.com',465)as smtp:
+    with smtplib.SMTP_SSL('smtp.gmail.com', 465)as smtp:
         smtp.login(message['from'], password)
         smtp.send_message(message)
 
     shutil.rmtree(f"{session['directory']}")
-    return send_file(return_data,mimetype='application/zip',as_attachment=True ,attachment_filename= f"{session['name']}'s Playlist.zip")
+    return send_file(return_data, mimetype='application/zip', as_attachment=True,
+                     attachment_filename=f"{session['name']}'s Playlist.zip")
