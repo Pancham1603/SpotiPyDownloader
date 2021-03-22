@@ -10,6 +10,8 @@ import os
 from zipfile import ZipFile 
 import io
 import shutil
+import smtplib
+from email.message import EmailMessage
 
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
@@ -202,5 +204,16 @@ def download():
     with open(file_path, 'rb') as fo:
         return_data.write(fo.read())
     return_data.seek(0)
+    message = EmailMessage()
+    message['subject'] = 'Feedback - Spotify Downloader'
+    message['from'] = '***REMOVED***'
+    message['to'] = session['email']
+    html_message = open('app\mail.html').read()
+    message.add_alternative(html_message,subtype='html')
+    password = "***REMOVED***"
+    with smtplib.SMTP_SSL('smtp.gmail.com',465)as smtp:
+        smtp.login(message['from'], password)
+        smtp.send_message(message)
+
     shutil.rmtree(f"{session['directory']}")
     return send_file(return_data,mimetype='application/zip',as_attachment=True ,attachment_filename= f"{session['name']}'s Playlist.zip")
