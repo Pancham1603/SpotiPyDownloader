@@ -204,6 +204,3 @@ def download():
     return_data.seek(0)
     shutil.rmtree(f"{session['directory']}")
     return send_file(return_data,mimetype='application/zip',as_attachment=True ,attachment_filename= f"{session['name']}'s Playlist.zip")
-
-
-

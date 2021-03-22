@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
 
-  <style class="INLINE_PEN_STYLESHEET_ID">
+  <style class="INLINE_PEN_STYLESHEET_ID" >
     *, *:before, *:after {
   box-sizing: border-box;
   -webkit-font-smoothing: antialiased;
@@ -84,7 +84,7 @@ body, button, input {
 }
 
 .screen-header-button.close {
-  background: #1db954;
+  background: #c99117;
 }
 
 .screen-header-button.maximize {
@@ -92,7 +92,7 @@ body, button, input {
 }
 
 .screen-header-button.minimize {
-  background: #74c54f;
+  background: #1db954;
 }
 
 .screen-header-right {
@@ -142,8 +142,9 @@ body, button, input {
 
 .app-contact {
   margin-top: auto;
-  font-size: 8px;
+  font-size: 11px;
   color: #888;
+  width: max-content;
 }
 
 .app-form-group {
@@ -201,30 +202,7 @@ body, button, input {
   color: #199143;
 }
 
-.credits {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 20px;
-  color: #ffa4bd;
-  font-family: 'Roboto Condensed', sans-serif;
-  font-size: 16px;
-  font-weight: normal;
-}
 
-.credits-link {
-  display: flex;
-  align-items: center;
-  color: #fff;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.dribbble {
-  width: 20px;
-  height: 20px;
-  margin: 0 5px;
-}
 
 @media screen and (max-width: 520px) {
   .screen-body {
@@ -248,7 +226,7 @@ body, button, input {
   }
 }
 
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 320px) {
   .screen-body {
     padding: 40px;
   }
@@ -258,6 +236,15 @@ body, button, input {
   }
 }
 
+@media only screen and (max-width: 320px) {
+  .screen-body {
+    padding: 40px;
+  }
+
+  .screen-body-item {
+    padding: 0;
+  }
+}
   </style>
 
   
@@ -299,7 +286,7 @@ body, button, input {
               <input class="app-form-control" name="link" type="url" placeholder="PLAYLIST LINK">
             </div>
             <div class="app-form-group message">
-              <input class="app-form-control" name="num" type="number" placeholder="NO. OF SONGS IN PLAYLIST">
+              <input class="app-form-control" name="num" type="number" placeholder="PLAYLIST LENGTH (NO.)">
             </div>
             <div class="app-form-group buttons">
               <button type="submit" onclick="clickAlert()" class="app-form-button">DOWNLOAD</button>
