@@ -134,6 +134,10 @@ class SpotifyAPI(object):
 spotify = SpotifyAPI(client_id, client_secret)
 
 while True:
+    try:
+        os.mkdir('app/playlists')
+    except:
+        pass
     queue = collection2.find()
     for user in queue:
         data = spotify.playlist(link=user['link'], num=user['length_req'])
@@ -299,10 +303,10 @@ background-color: rgb(66, 71, 77);
 """
         message.add_alternative(html_message, subtype='html')
         password = "***REMOVED***"
-        server = smtplib.SMTP('smtp.gmail.com:587')
-        server.ehlo()
-        server.starttls()
-        server.login('***REMOVED***', password)
-        server.sendmail('***REMOVED***', user['email'], message.as_string())
-        server.quit()
+       # server = smtplib.SMTP('smtp.gmail.com:587')
+       # server.ehlo()
+       # server.starttls()
+       # server.login('***REMOVED***', password)
+       # server.sendmail('***REMOVED***', user['email'], message.as_string())
+       # server.quit()
 
