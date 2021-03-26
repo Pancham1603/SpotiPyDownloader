@@ -20,7 +20,6 @@ import random
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
 
-
 client = pymongo.MongoClient(
     "***REMOVED***")
 db = client.test
@@ -28,6 +27,8 @@ fs = gridfs.GridFS(db)
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 collection3 = db['downloaded_files']
+chunks = db['fs.chunks']
+files = db['fs.files']
 
 
 class SpotifyAPI(object):
@@ -45,7 +46,7 @@ class SpotifyAPI(object):
 
     def get_client_credentials(self):
         """
-        Returns a base64 encoded string    
+        Returns a base64 encoded string
         """
         client_id = self.client_id
         client_secret = self.client_secret
@@ -190,8 +191,10 @@ def queueDownload():
                     'otp': otp
                 }
             )
-            flash("Download queued!")
-            return redirect('/')
+            flash(f"""Download queued!\n
+OTP: {otp}\n
+The same has been sent on mail with a feedback form.""")
+            return redirect('/retrieve/queue')
         elif results.count() != 0:
             for result in results:
                 use = result['uses'] + 1
@@ -216,9 +219,10 @@ def queueDownload():
                     'otp': otp
                 }
             )
-            flash("Download queued!")
-            flash(f"OTP: {otp}")
-            return redirect('/')
+            flash(f"""Download queued!\n
+OTP: {otp}\n
+The same has been sent on mail with a feedback form.""")
+            return redirect('/retrieve/queue')
     else:
         flash("Enter a valid Spotify Playlist URL!")
         return redirect('/')
@@ -234,37 +238,94 @@ def download():
     user_data = request.form
     session['email'] = user_data['email']
     session['otp'] = int(user_data['otp'])
+
+    user_in_queue = collection2.find_one(
+        {
+            'email': session['email'].lower(),
+            'otp': int(session['otp'])
+        }
+    )
+
     user = collection3.find_one(
         {
             'email': session['email'].lower(),
             'otp': int(session['otp'])
         }
     )
-    if user == None:
-        flash('Incorrect EmailID or password!')
-        return redirect('/retrieve/queue')
+
+    probable_user_in_queue = collection2.find_one(
+        {
+            'email': session['email'].lower()
+        }
+    )
+
+    probable_user = collection3.find_one(
+        {
+            'email': session['email'].lower()
+        }
+    )
+
+    probable_otp = collection3.find_one(
+        {
+            'otp':int(session['otp'])
+        }
+    )
+
+    probable_otp_in_queue = collection2.find_one(
+        {
+            'otp':int(session['otp'])
+        }
+    )
+
+    if probable_user == None and probable_user_in_queue == None and probable_otp == None and probable_otp_in_queue == None:
+        flash('Please queue your download first!')
+        return redirect('/')
     else:
-        playlist_path_id = user['playlist_path']
-        playlist_path = fs.get(playlist_path_id)
 
-        collection3.delete_one(
-            {
-                'email': session['email'].lower(),
-                'otp': int(session['otp'])
-            }
-        )
+        if user == None and user_in_queue == None:
+            flash(f"""Incorrect email-id or password!""")
 
-        for path in playlist_path:
-            playlist_path = path
+            return redirect('/retrieve/queue')
 
-        playlist_path = playlist_path.decode()
-        return_data = io.BytesIO()
-        with open(playlist_path, 'rb') as fo:
-            return_data.write(fo.read())
-        return_data.seek(0)
-        os.remove(playlist_path)
-        flash("Downloading file. Thankyou for using SpotipyDL")
-        return send_file(return_data, mimetype='application/zip', as_attachment=True, attachment_filename='MyPlaylist.zip')
+        elif user == None and user_in_queue != None:
+            flash(f"""Your playlist is still downloading. Retry after few minutes.""")
+            return redirect('/retrieve/queue')
+
+        else:
+            playlist_path_id = user['playlist_path']
+            playlist_path = fs.get(playlist_path_id)
+
+            collection3.delete_one(
+                {
+                    'email': session['email'].lower(),
+                    'otp': int(session['otp'])
+                }
+            )
+
+            for path in playlist_path:
+                playlist_path = path
+
+            playlist_path = playlist_path.decode()
+            return_data = io.BytesIO()
+            with open(playlist_path, 'rb') as fo:
+                return_data.write(fo.read())
+            return_data.seek(0)
+            os.remove(playlist_path)
+            flash("Downloading file. Thank you! Please check your mail for a feedback form.")
+
+            chunks.delete_one(
+                {
+                    'files_id': playlist_path_id
+                }
+            )
+
+            files.delete_one(
+                {
+                    '_id': playlist_path_id
+                }
+            )
+            return send_file(return_data, mimetype='application/zip', as_attachment=True,
+                             attachment_filename='MyPlaylist.zip')
 
 
 if __name__ == "__main__":
