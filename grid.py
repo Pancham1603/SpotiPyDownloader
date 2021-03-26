@@ -20,15 +20,13 @@ import random
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
 
-
-client = pymongo.MongoClient(
+client = MongoClient(
     "***REMOVED***")
 db = client.test
 fs = gridfs.GridFS(db)
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 collection3 = db['downloaded_files']
-
 
 class SpotifyAPI(object):
     access_token = None
@@ -45,7 +43,7 @@ class SpotifyAPI(object):
 
     def get_client_credentials(self):
         """
-        Returns a base64 encoded string    
+        Returns a base64 encoded string
         """
         client_id = self.client_id
         client_secret = self.client_secret
@@ -133,139 +131,85 @@ class SpotifyAPI(object):
             return {}
         return r.json()
 
-
-app = Flask(__name__)
-app.secret_key = 'demo'
 spotify = SpotifyAPI(client_id, client_secret)
 
-
-@app.route('/home')
-@app.route('/')
-def initiation():
-    return render_template("index.html")
-
-
-@app.route('/queuedownload', methods=['GET', 'POST'])
-def queueDownload():
-    user_data = request.form
-    session['name'] = user_data['name']
-    session['email'] = user_data['email']
-    session['link'] = user_data['link']
-    session['num'] = user_data['num']
-    results = collection1.find({'email': session['email'].lower()})
-    otp = random.randrange(100000, 999999)
-    data = spotify.playlist(link=session['link'], num=session['num'])
-    songs = []
-    for item in range(int(session['num'])):
+while True:
+    queue = collection2.find()
+    for user in queue:
+        data = spotify.playlist(link=user['link'], num=user['length_req'])
+        songs = []
+        for item in range(int(user['length_req'])):
+            try:
+                track_name = data['items'][item]['track']['name']
+                artist_name = data['items'][item]['track']['artists'][0]['name']
+                songs.append(f'{track_name} - {artist_name}')
+                success = True
+            except IndexError:
+                pass
+        directory = f"{user['name']}'s Playlist"
+        user['directory'] = directory
         try:
-            track_name = data['items'][item]['track']['name']
-            artist_name = data['items'][item]['track']['artists'][0]['name']
-            songs.append(f'{track_name} - {artist_name}')
-            success = True
-        except IndexError:
-            pass
-        except KeyError:
-            success = False
-            break
-    if success:
-        if results.count() == 0:
+            os.mkdir(directory)
+        except:
+            shutil.rmtree(directory)
+            os.mkdir(directory)
+        base = 'https://www.youtube.com'
 
-            collection1.insert_one({
-                'name': session['name'],
-                'email': session['email'].lower(),
-                'request': {
-                    'playlist': session['link'],
-                    'length_req': session['num'],
-                    'time': datetime.datetime.now()
-                },
-                'uses': 1
-            })
+        for song in songs:
+            try:
+                print(f"Downloading: {song}")
+                result = YoutubeSearch(song, max_results=1).to_dict()
+                suffix = result[0]['url_suffix']
+                link = base + suffix
+                out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                base, ext = os.path.splitext(out_file)
+                new_file = base + '.mp3'
+                os.rename(out_file, new_file)
+                asyncio.sleep(10)
+            except KeyError:
+                print(f"Downloading: {song}")
+                result = YoutubeSearch(song, max_results=1).to_dict()
+                suffix = result[0]['url_suffix']
+                link = base + suffix
+                out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                base, ext = os.path.splitext(out_file)
+                new_file = base + '.mp3'
+                os.rename(out_file, new_file)
+                asyncio.sleep(10)
+            except FileExistsError:
+                pass
+            except:
+                print(f"Download Failed: {song}")
+                asyncio.sleep(10)
+        file_paths = []
 
-            collection2.insert_one(
-                {
-                    'name': session['name'],
-                    'email': session['email'],
-                    'link': session['link'],
-                    'length_req': session['num'],
-                    'otp': otp
-                }
-            )
-            flash("Download queued!")
-            return redirect('/')
-        elif results.count() != 0:
-            for result in results:
-                use = result['uses'] + 1
+        for root, directories, files in os.walk(directory):
+            for filename in files:
+                filepath = os.path.join(root, filename)
+                file_paths.append(filepath)
 
-            document = {'$set':
-                {f'request{use}': {
-                    'playlist': session['link'],
-                    'length_req': session['num'],
-                    'time': datetime.datetime.now()
-                },
-                    'uses': use}
-            }
-
-            query = {'email': session['email']}
-            collection1.update_one(query, document)
-            collection2.insert_one(
-                {
-                    'name': session['name'],
-                    'email': session['email'],
-                    'link': session['link'],
-                    'length_req': session['num'],
-                    'otp': otp
-                }
-            )
-            flash("Download queued!")
-            flash(f"OTP: {otp}")
-            return redirect('/')
-    else:
-        flash("Enter a valid Spotify Playlist URL!")
-        return redirect('/')
-
-
-@app.route('/retrieve/queue')
-def get_files():
-    return render_template('retrieve.html')
-
-
-@app.route('/retrieve', methods=['GET', 'POST'])
-def download():
-    user_data = request.form
-    session['email'] = user_data['email']
-    session['otp'] = int(user_data['otp'])
-    user = collection3.find_one(
-        {
-            'email': session['email'].lower(),
-            'otp': int(session['otp'])
-        }
-    )
-    if user == None:
-        flash('Incorrect EmailID or password!')
-        return redirect('/retrieve/queue')
-    else:
-        playlist_path_id = user['playlist_path']
-        playlist_path = fs.get(playlist_path_id)
-
-        collection3.delete_one(
+        with ZipFile(f"app\playlists\{user['email']}.zip", 'w') as zip:
+            for file in file_paths:
+                zip.write(file)
+        zip_path = fs.put(f"playlists\{user['email']}.zip",filename=f"{user['email']}.zip",encoding='utf-8')
+        collection3.insert_one(
             {
-                'email': session['email'].lower(),
-                'otp': int(session['otp'])
+                'name':user['name'],
+                'email':user['email'],
+                'otp':user['otp'],
+                'playlist_path':zip_path,
+                'time':datetime.datetime.now()
             }
         )
 
-        for path in playlist_path:
-            playlist_path = path
-
-        playlist_path = playlist_path.decode()
-        return_data = io.BytesIO()
-        with open(playlist_path, 'rb') as fo:
-            return_data.write(fo.read())
-        return_data.seek(0)
-        os.remove(playlist_path)
-        flash("Downloading file. Thankyou for using SpotipyDL")
-        return send_file(return_data, mimetype='application/zip', as_attachment=True, attachment_filename='MyPlaylist.zip')
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+        collection2.delete_one(
+            {
+                'name':user['name'],
+                'email':user['email'],
+                'link':user['link'],
+                'length_req':user['length_req'],
+                'otp':user['otp']
+            }
+        )
+        print(f"Playlist for {user['name']} downloaded successfully!")
+        shutil.rmtree(directory)
