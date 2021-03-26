@@ -310,7 +310,6 @@ def download():
             with open(playlist_path, 'rb') as fo:
                 return_data.write(fo.read())
             return_data.seek(0)
-            os.remove(playlist_path)
             flash("Downloading file. Thank you! Please check your mail for a feedback form.")
 
             chunks.delete_one(
@@ -324,7 +323,7 @@ def download():
                     '_id': playlist_path_id
                 }
             )
-            return send_file(return_data, mimetype='application/zip', as_attachment=True,
+            return send_file(playlist_path, mimetype='application/zip', as_attachment=True,
                              attachment_filename='MyPlaylist.zip')
 
 
