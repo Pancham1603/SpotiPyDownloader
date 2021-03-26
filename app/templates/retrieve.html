@@ -8,7 +8,7 @@
 
   <meta name="robots" content="noindex">
 
-  
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
@@ -196,25 +196,10 @@ body, button, input {
   font-size: 14px;
   cursor: pointer;
   outline: none;
-}
-
-.new-button {
-  background: none;
-  border: none;
-  color: #1db954;
-  font-size: 14px;
-  cursor: pointer;
-  outline: none;
-  position:absolute;
-  bottom: 136px;
-
+  padding-top:15px;
 }
 
 .app-form-button:hover {
-  color: #199143;
-}
-
-.new-button:hover {
   color: #199143;
 }
 
@@ -250,7 +235,7 @@ body, button, input {
 }
 
 .flash-message {
-  color:red;
+color: red;
 }
 
 .title {
@@ -279,7 +264,7 @@ body, button, input {
 }
   </style>
 
-  
+
 </head>
 
 <body>
@@ -300,38 +285,27 @@ body, button, input {
       </div>
       <div class="screen-body">
         <div class="screen-body-item left">
-          <form action="/retrieve/queue">
-          <button class="new-button" type="submit">DOWNLOAD QUEUED FILE</button>
-          </form>
-            <div class="app-title">
+          <div class="app-title">
             <span><a href="/" class="title">SPOTIFY</a></span>
             <span><a href="/" class="title">DOWNLOADER</a></span>
           </div>
           <div class="app-contact">MADE WITH ❤ BY <a class="mail" href="mailto:***REMOVED***">PANCHAM AGARWAL</a> </div>
         </div>
         <div class="screen-body-item">
-          <form class="app-form" method="POST" action="/queuedownload">
-            <div class="app-form-group">
-              <input class="app-form-control" name="name" placeholder="NAME" required>
-            </div>
+          <form class="app-form" method="POST" action="/retrieve">
             <div class="app-form-group">
               <input class="app-form-control" name="email" type="email" placeholder="EMAIL" required>
             </div>
             <div class="app-form-group">
-              <input class="app-form-control" name="link" type="url" placeholder="PLAYLIST LINK" required>
-            </div>
-            <div class="app-form-group message">
-              <input class="app-form-control" name="num" type="number" placeholder="PLAYLIST LENGTH (NO.)" required>
+              <input class="app-form-control" name="otp" type="password" placeholder="ONE TIME PASSWORD" required>
             </div>
             <div class="app-form-group buttons">
-              <button type="submit" class="app-form-button">QUEUE DOWNLOAD</button>
+              <button type="submit" class="app-form-button">DOWNLOAD</button>
             </div>
             {% for mesg in get_flashed_messages() %}
       <h5 class="flash-message">{{ mesg }}</h5>
       {% endfor %}
         </form>
-        <script>
-          </script>
         </div>
       </div>
     </div>
