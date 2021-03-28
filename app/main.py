@@ -306,6 +306,7 @@ def download():
                 playlist_path = path
 
             playlist_path = playlist_path.decode()
+            playlist_path = playlist_path[4:]
             return_data = io.BytesIO()
             with open(playlist_path, 'rb') as fo:
                 return_data.write(fo.read())
@@ -323,8 +324,21 @@ def download():
                     '_id': playlist_path_id
                 }
             )
-            return send_file(playlist_path, mimetype='application/zip', as_attachment=True,
+            os.remove(playlist_path)
+            return send_file(return_data, mimetype='application/zip', as_attachment=True,
                              attachment_filename='MyPlaylist.zip')
+
+@app.errorhandler(404)
+def error(error):
+    return render_template('error404.html')
+
+@app.errorhandler(500)
+def error(error):
+    return render_template('error500.html')
+
+@app.errorhandler(502)
+def error(error):
+    return render_template('error502.html')
 
 
 if __name__ == "__main__":

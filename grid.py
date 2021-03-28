@@ -28,6 +28,7 @@ collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 collection3 = db['downloaded_files']
 
+
 class SpotifyAPI(object):
     access_token = None
     access_token_expires = datetime.datetime.now()
@@ -131,13 +132,10 @@ class SpotifyAPI(object):
             return {}
         return r.json()
 
+
 spotify = SpotifyAPI(client_id, client_secret)
 
 while True:
-    try:
-        os.mkdir('app/playlists')
-    except:
-        pass
     queue = collection2.find()
     for user in queue:
         data = spotify.playlist(link=user['link'], num=user['length_req'])
@@ -192,27 +190,27 @@ while True:
                 filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
 
-        with ZipFile(f"app\playlists\{user['email']}.zip", 'w') as zip:
+        with ZipFile(f"app\{user['email']}.zip", 'w') as zip:
             for file in file_paths:
                 zip.write(file)
-        zip_path = fs.put(f"playlists\{user['email']}.zip",filename=f"{user['email']}.zip",encoding='utf-8')
+        zip_path = fs.put(f"app\{user['email']}.zip", filename=f"{user['email']}.zip", encoding='utf-8')
         collection3.insert_one(
             {
-                'name':user['name'],
-                'email':user['email'],
-                'otp':user['otp'],
-                'playlist_path':zip_path,
-                'time':datetime.datetime.now()
+                'name': user['name'],
+                'email': user['email'],
+                'otp': user['otp'],
+                'playlist_path': zip_path,
+                'time': datetime.datetime.now()
             }
         )
 
         collection2.delete_one(
             {
-                'name':user['name'],
-                'email':user['email'],
-                'link':user['link'],
-                'length_req':user['length_req'],
-                'otp':user['otp']
+                'name': user['name'],
+                'email': user['email'],
+                'link': user['link'],
+                'length_req': user['length_req'],
+                'otp': user['otp']
             }
         )
         print(f"Playlist for {user['name']} downloaded successfully!")
@@ -303,10 +301,9 @@ background-color: rgb(66, 71, 77);
 """
         message.add_alternative(html_message, subtype='html')
         password = "***REMOVED***"
-       # server = smtplib.SMTP('smtp.gmail.com:587')
-       # server.ehlo()
-       # server.starttls()
-       # server.login('***REMOVED***', password)
-       # server.sendmail('***REMOVED***', user['email'], message.as_string())
-       # server.quit()
-
+    # server = smtplib.SMTP('smtp.gmail.com:587')
+    # server.ehlo()
+    # server.starttls()
+    # server.login('***REMOVED***', password)
+    # server.sendmail('***REMOVED***', user['email'], message.as_string())
+    # server.quit()
