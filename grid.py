@@ -14,7 +14,6 @@ from email.message import EmailMessage
 import pymongo
 from pymongo import MongoClient
 import asyncio
-import gridfs
 import random
 
 client_id = '***REMOVED***'
@@ -23,7 +22,6 @@ client_secret = '***REMOVED***'
 client = MongoClient(
     "***REMOVED***")
 db = client.test
-fs = gridfs.GridFS(db)
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 collection3 = db['downloaded_files']
@@ -189,7 +187,7 @@ while True:
             for filename in files:
                 filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
-        with ZipFile(f"app\static\{user['email']}.zip", 'w') as zip:
+        with ZipFile(f"{user['email']}.zip", 'w') as zip:
             print("made zip folder")
             for file in file_paths:
                 zip.write(file)
@@ -210,7 +208,6 @@ while True:
             }
         )
         print(f"Playlist for {user['name']} downloaded successfully!")
-        shutil.rmtree(directory)
         message = EmailMessage()
         message['subject'] = 'Feedback - Spotify Downloader'
         message['from'] = '***REMOVED***'

@@ -2,10 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="854afaba-ad5f-4834-b326-f57c142dc601" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/error404.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/error404.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/error500.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/error500.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/templates/error502.html" beforeDir="false" afterPath="$PROJECT_DIR$/app/templates/error502.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/main.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/static/readme.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/error404.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/error500.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/error502.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/templates/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/grid.py" beforeDir="false" afterPath="$PROJECT_DIR$/grid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mail.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/wsgi.py" beforeDir="false" afterPath="$PROJECT_DIR$/wsgi.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,8 +21,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
