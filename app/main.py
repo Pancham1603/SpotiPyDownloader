@@ -223,24 +223,24 @@ def queueDownload():
 
 @app.route('/download/<path:filename>')
 def custom_static(filename):
-    try:
-        collection3.delete_one(
-            {
-                'email': filename[:-4],
-            }
-        )
-        return_data = io.BytesIO()
-        with open(f"app\static\{filename}", 'rb') as fo:
-            return_data.write(fo.read())
-        return_data.seek(0)
-        success = True
-        return send_file(return_data, mimetype='application/zip', as_attachment=True,
-                         attachment_filename='MyPlaylist.zip')
-    except:
-        success = False
-        return render_template('error500.html')
-    if success:
-        os.remove(f'app/static/{filename}')
+#try:
+    collection3.delete_one(
+        {
+            'email': filename[:-4],
+        }
+    )
+    return_data = io.BytesIO()
+    with open(f"app\static\{filename}", 'rb') as fo:
+        return_data.write(fo.read())
+    return_data.seek(0)
+    success = True
+    return send_file(return_data, mimetype='application/zip', as_attachment=True,
+                     attachment_filename='MyPlaylist.zip')
+#except:
+#    success = False
+#    return render_template('error500.html')
+#if success:
+#    os.remove(f'app/static/{filename}')
 
 
 
