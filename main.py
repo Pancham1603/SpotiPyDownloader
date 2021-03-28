@@ -14,7 +14,6 @@ from email.message import EmailMessage
 import pymongo
 from pymongo import MongoClient
 import asyncio
-import gridfs
 import random
 
 client_id = '***REMOVED***'
@@ -23,7 +22,6 @@ client_secret = '***REMOVED***'
 client = pymongo.MongoClient(
     "***REMOVED***")
 db = client.test
-fs = gridfs.GridFS(db)
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 collection3 = db['downloaded_files']
@@ -223,25 +221,20 @@ def queueDownload():
 
 @app.route('/download/<path:filename>')
 def custom_static(filename):
-#try:
     collection3.delete_one(
         {
             'email': filename[:-4],
         }
     )
     return_data = io.BytesIO()
-    with open(f"app\static\{filename}", 'rb') as fo:
+    with open(f"{filename}", 'rb') as fo:
         return_data.write(fo.read())
     return_data.seek(0)
-    success = True
+    restricted = ['templates','main.py','wsgi.py','grid.py','requirements.txt', 'Procfile','playlists']
+    if filename not in restricted:
+        os.remove(str(filename))
     return send_file(return_data, mimetype='application/zip', as_attachment=True,
                      attachment_filename='MyPlaylist.zip')
-#except:
-#    success = False
-#    return render_template('error500.html')
-#if success:
-#    os.remove(f'app/static/{filename}')
-
 
 
 @app.errorhandler(404)
