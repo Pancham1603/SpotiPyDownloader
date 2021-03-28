@@ -189,9 +189,7 @@ def queueDownload():
                     'length_req': session['num'],
                 }
             )
-            flash(f"""Download queued!\n
-OTP: {otp}\n
-The same has been sent on mail with a feedback form.""")
+            flash(f"""Download queued! You'll receive a download link on your e-mail within 10minutes.""")
             return redirect('/retrieve/queue')
         elif results.count() != 0:
             for result in results:
@@ -235,11 +233,15 @@ def custom_static(filename):
         with open(f"app\static\{filename}", 'rb') as fo:
             return_data.write(fo.read())
         return_data.seek(0)
-        os.remove(f'app/static/{filename}')
+        success = True
         return send_file(return_data, mimetype='application/zip', as_attachment=True,
                          attachment_filename='MyPlaylist.zip')
     except:
+        success = False
         return render_template('error500.html')
+    if success:
+        os.remove(f'app/static/{filename}')
+
 
 
 @app.errorhandler(404)
