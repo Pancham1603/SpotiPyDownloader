@@ -184,16 +184,21 @@ while True:
                 print(f"Download Failed: {song}")
                 asyncio.sleep(10)
         file_paths = []
-
+        print("getting song file paths")
         for root, directories, files in os.walk(directory):
             for filename in files:
                 filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
-
+                print(filename)
+                print(filepath)
+        print("writing zip")
         with ZipFile(f"app\{user['email']}.zip", 'w') as zip:
+            print("made zip folder")
             for file in file_paths:
+                print(file)
                 zip.write(file)
         zip_path = fs.put(f"app\{user['email']}.zip", filename=f"{user['email']}.zip", encoding='utf-8')
+        print(zip_path)
         collection3.insert_one(
             {
                 'name': user['name'],
