@@ -306,9 +306,8 @@ def download():
                 playlist_path = path
 
             playlist_path = playlist_path.decode()
-            playlist_path = playlist_path[4:]
             return_data = io.BytesIO()
-            with open(playlist_path, 'rb') as fo:
+            with open(playlist_path[4:], 'rb') as fo:
                 return_data.write(fo.read())
             return_data.seek(0)
             flash("Downloading file. Thank you! Please check your mail for a feedback form.")
@@ -324,7 +323,7 @@ def download():
                     '_id': playlist_path_id
                 }
             )
-            os.remove(playlist_path)
+            os.remove(playlist_path[4:])
             return send_file(return_data, mimetype='application/zip', as_attachment=True,
                              attachment_filename='MyPlaylist.zip')
 
