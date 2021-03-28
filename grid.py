@@ -189,22 +189,14 @@ while True:
             for filename in files:
                 filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
-                print(filename)
-                print(filepath)
-        print("writing zip")
-        with ZipFile(f"app\{user['email']}.zip", 'w') as zip:
+        with ZipFile(f"app\static\{user['email']}.zip", 'w') as zip:
             print("made zip folder")
             for file in file_paths:
-                print(file)
                 zip.write(file)
-        zip_path = fs.put(f"app\{user['email']}.zip", filename=f"{user['email']}.zip", encoding='utf-8')
-        print(zip_path)
         collection3.insert_one(
             {
                 'name': user['name'],
                 'email': user['email'],
-                'otp': user['otp'],
-                'playlist_path': zip_path,
                 'time': datetime.datetime.now()
             }
         )
@@ -215,7 +207,6 @@ while True:
                 'email': user['email'],
                 'link': user['link'],
                 'length_req': user['length_req'],
-                'otp': user['otp']
             }
         )
         print(f"Playlist for {user['name']} downloaded successfully!")
@@ -292,12 +283,12 @@ background-color: rgb(66, 71, 77);
 <script  src="https://cdpn.io/cp/internal/boomboom/pen.js?key=pen.js-00245fc6-a69f-7fef-45f8-9ca6a7d058a6" crossorigin></script>
 <body>
     <h1 class="heading">SPOTIPY DOWNLOADER</h1>
+    <p>Download Link: <a href="https://spotipydownloader.herokuapp.com/download/{user['email']}.zip">https://spotipydownloader.herokuapp.com/download/{user['email']}.zip</a> </p>
     <p>    Your playlist is ready. Thank you for using Spotify Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
     </p>
     <div class="form">
     <form action="https://forms.gle/33zWczLqooorKUiA8">
         <button type="submit">FEEDBACK FORM</button>
-        OTP: {user['otp']}
     </form>
 </div>
 </body>
@@ -306,9 +297,9 @@ background-color: rgb(66, 71, 77);
 """
         message.add_alternative(html_message, subtype='html')
         password = "***REMOVED***"
-    # server = smtplib.SMTP('smtp.gmail.com:587')
-    # server.ehlo()
-    # server.starttls()
-    # server.login('***REMOVED***', password)
-    # server.sendmail('***REMOVED***', user['email'], message.as_string())
-    # server.quit()
+        server = smtplib.SMTP('smtp.gmail.com:587')
+        server.ehlo()
+        server.starttls()
+        server.login('***REMOVED***', password)
+        server.sendmail('***REMOVED***', user['email'], message.as_string())
+        server.quit()
