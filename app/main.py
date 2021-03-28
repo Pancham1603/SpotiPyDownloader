@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, session, redirect, send_file, flash
+from flask import Flask, render_template, request, url_for, session, redirect, send_file, flash, send_from_directory
 import smtplib
 import base64
 import requests
@@ -154,7 +154,6 @@ def queueDownload():
     session['link'] = user_data['link']
     session['num'] = user_data['num']
     results = collection1.find({'email': session['email'].lower()})
-    otp = random.randrange(100000, 999999)
     data = spotify.playlist(link=session['link'], num=session['num'])
     songs = []
     for item in range(int(session['num'])):
@@ -188,7 +187,6 @@ def queueDownload():
                     'email': session['email'],
                     'link': session['link'],
                     'length_req': session['num'],
-                    'otp': otp
                 }
             )
             flash(f"""Download queued!\n
@@ -216,129 +214,44 @@ The same has been sent on mail with a feedback form.""")
                     'email': session['email'],
                     'link': session['link'],
                     'length_req': session['num'],
-                    'otp': otp
                 }
             )
-            flash(f"""Download queued!\n
-OTP: {otp}\n
-The same has been sent on mail with a feedback form.""")
-            return redirect('/retrieve/queue')
+            flash(f"""Download queued! You'll receive a download link on your e-mail within 10minutes.""")
+            return redirect('/')
     else:
         flash("Enter a valid Spotify Playlist URL!")
         return redirect('/')
 
 
-@app.route('/retrieve/queue')
-def get_files():
-    return render_template('retrieve.html')
+@app.route('/download/<path:filename>')
+def custom_static(filename):
+    try:
+        collection3.delete_one(
+            {
+                'email': filename[:-4],
+            }
+        )
+        return_data = io.BytesIO()
+        with open(f"app\static\{filename}", 'rb') as fo:
+            return_data.write(fo.read())
+        return_data.seek(0)
+        os.remove(f'app/static/{filename}')
+        return send_file(return_data, mimetype='application/zip', as_attachment=True,
+                         attachment_filename='MyPlaylist.zip')
+    except:
+        return render_template('error500.html')
 
-
-@app.route('/retrieve', methods=['GET', 'POST'])
-def download():
-    user_data = request.form
-    session['email'] = user_data['email']
-    session['otp'] = int(user_data['otp'])
-
-    user_in_queue = collection2.find_one(
-        {
-            'email': session['email'].lower(),
-            'otp': int(session['otp'])
-        }
-    )
-
-    user = collection3.find_one(
-        {
-            'email': session['email'].lower(),
-            'otp': int(session['otp'])
-        }
-    )
-
-    probable_user_in_queue = collection2.find_one(
-        {
-            'email': session['email'].lower()
-        }
-    )
-
-    probable_user = collection3.find_one(
-        {
-            'email': session['email'].lower()
-        }
-    )
-
-    probable_otp = collection3.find_one(
-        {
-            'otp':int(session['otp'])
-        }
-    )
-
-    probable_otp_in_queue = collection2.find_one(
-        {
-            'otp':int(session['otp'])
-        }
-    )
-
-    if probable_user == None and probable_user_in_queue == None and probable_otp == None and probable_otp_in_queue == None:
-        flash('Please queue your download first!')
-        return redirect('/')
-    else:
-
-        if user == None and user_in_queue == None:
-            flash(f"""Incorrect email-id or password!""")
-
-            return redirect('/retrieve/queue')
-
-        elif user == None and user_in_queue != None:
-            flash(f"""Your playlist is still downloading. Retry after few minutes.""")
-            return redirect('/retrieve/queue')
-
-        else:
-            playlist_path_id = user['playlist_path']
-            playlist_path = fs.get(playlist_path_id)
-
-            collection3.delete_one(
-                {
-                    'email': session['email'].lower(),
-                    'otp': int(session['otp'])
-                }
-            )
-
-            for path in playlist_path:
-                playlist_path = path
-
-            playlist_path = playlist_path.decode()
-            return_data = io.BytesIO()
-            with open(playlist_path[4:], 'rb') as fo:
-                return_data.write(fo.read())
-            return_data.seek(0)
-            flash("Downloading file. Thank you! Please check your mail for a feedback form.")
-
-            chunks.delete_one(
-                {
-                    'files_id': playlist_path_id
-                }
-            )
-
-            files.delete_one(
-                {
-                    '_id': playlist_path_id
-                }
-            )
-            os.remove(playlist_path[4:])
-            return send_file(return_data, mimetype='application/zip', as_attachment=True,
-                             attachment_filename='MyPlaylist.zip')
 
 @app.errorhandler(404)
 def error(error):
     return render_template('error404.html')
 
+
 @app.errorhandler(500)
 def error(error):
     return render_template('error500.html')
 
+
 @app.errorhandler(502)
 def error(error):
     return render_template('error502.html')
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
