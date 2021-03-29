@@ -25,9 +25,6 @@ client = pymongo.MongoClient(
 db = client.test
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
-collection3 = db['downloaded_files']
-chunks = db['fs.chunks']
-files = db['fs.files']
 
 
 class SpotifyAPI(object):

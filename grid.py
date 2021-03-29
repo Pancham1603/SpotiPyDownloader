@@ -16,6 +16,12 @@ from pymongo import MongoClient
 import asyncio
 import random
 import json
+from pydrive.auth import GoogleAuth
+from pydrive.drive import  GoogleDrive
+
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
@@ -25,8 +31,6 @@ client = MongoClient(
 db = client.test
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
-collection3 = db['downloaded_files']
-
 
 class SpotifyAPI(object):
     access_token = None
@@ -203,33 +207,21 @@ while True:
             print("made zip folder")
             for file in file_paths:
                 zip.write(file)
-        headers = {"Authorization": "Bearer ya29.a0AfH6SMCA9Q8pgdVBI0u5kBRVmnBz5P9ioQUj8s0efOlfgdgT6wuDTMaQsXK7MIiVymLGjAtUhJhFjtae838zSr02h58zanGeO-euJUbLzIiCDfKLL2GlvSdX2R8R5uHFh1wIQ7oxssepM47_qZ2yiYois99z"}
-        para = {
-            "name": f"{user['email']}.zip",
-            'parents' : ["***REMOVED***"]
-        }
-        files = {
-            'data': ('metadata', json.dumps(para), 'application/json; charset=UTF-8'),
-            'file': open(f"{user['email']}.zip", "rb")
-        }
-        r = requests.post(
-            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
-            headers=headers,
-            files=files
-        )
-        file_info = r.json()
-        print(file_info)
-        file_id = file_info['id']
-        file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-        collection3.insert_one(
+
+        file = drive.CreateFile(
             {
-                'name': user['name'],
-                'email': user['email'].lower(),
-                'url': file_url,
-                'time': datetime.datetime.now()
+                'title':f"{user['email']}",
+                'parents':[{'kind':'drive#fileLink',
+                            'id':"***REMOVED***"}]
             }
         )
+        file.SetContentFile(f"{user['email'].lower()}.zip")
+        file.Upload()
+        file_id = file['id']
 
+        file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+        file.content.close()
+        print("Upload complete")
         collection2.delete_one(
             {
                 'name': user['name'],
@@ -332,6 +324,7 @@ background-color: rgb(66, 71, 77);
         server.login('***REMOVED***', password)
         server.sendmail('***REMOVED***', user['email'], message.as_string())
         server.quit()
+        print("Link mailed")
         try:
             os.remove(f"{user['email']}.zip")
             shutil.rmtree(directory)
