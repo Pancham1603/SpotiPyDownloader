@@ -15,6 +15,7 @@ import pymongo
 from pymongo import MongoClient
 import asyncio
 import random
+import json
 
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
@@ -146,7 +147,7 @@ while True:
                 success = True
             except IndexError:
                 pass
-        directory = f"{user['name']}'s Playlist"
+        directory = f"{user['email']}'s Playlist"
         user['directory'] = directory
         try:
             os.mkdir(directory)
@@ -187,14 +188,34 @@ while True:
             for filename in files:
                 filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
-        with ZipFile(f"{user['email']}.zip", 'w') as zip:
+        with ZipFile(f"{user['email'].lower()}.zip", 'w') as zip:
             print("made zip folder")
             for file in file_paths:
                 zip.write(file)
+        headers = {"Authorization": "Bearer ya29.a0AfH6SMCA9Q8pgdVBI0u5kBRVmnBz5P9ioQUj8s0efOlfgdgT6wuDTMaQsXK7MIiVymLGjAtUhJhFjtae838zSr02h58zanGeO-euJUbLzIiCDfKLL2GlvSdX2R8R5uHFh1wIQ7oxssepM47_qZ2yiYois99z"}
+        para = {
+            "name": f"{user['email']}.zip",
+            'parents' : ["***REMOVED***"]
+        }
+        files = {
+            'data': ('metadata', json.dumps(para), 'application/json; charset=UTF-8'),
+            'file': open(f"{user['email']}.zip", "rb")
+        }
+        r = requests.post(
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart",
+            headers=headers,
+            files=files
+        )
+        file_info = r.json()
+        print(file_info)
+        file_id = file_info['id']
+        file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
         collection3.insert_one(
             {
                 'name': user['name'],
-                'email': user['email'],
+                'email': user['email'].lower(),
+                'url': file_url,
+                'directory': directory,
                 'time': datetime.datetime.now()
             }
         )
@@ -202,16 +223,17 @@ while True:
         collection2.delete_one(
             {
                 'name': user['name'],
-                'email': user['email'],
+                'email': user['email'].lower(),
                 'link': user['link'],
                 'length_req': user['length_req'],
             }
         )
+
         print(f"Playlist for {user['name']} downloaded successfully!")
         message = EmailMessage()
         message['subject'] = 'Feedback - Spotify Downloader'
         message['from'] = '***REMOVED***'
-        message['to'] = user['email']
+        message['to'] = user['email'].lower()
         html_message = """
 <!DOCTYPE html>
 <html lang='en' class=''>
@@ -280,7 +302,7 @@ background-color: rgb(66, 71, 77);
 <script  src="https://cdpn.io/cp/internal/boomboom/pen.js?key=pen.js-00245fc6-a69f-7fef-45f8-9ca6a7d058a6" crossorigin></script>
 <body>
     <h1 class="heading">SPOTIPY DOWNLOADER</h1>
-    <p>Download Link: <a href="https://spotipydownloader.herokuapp.com/download/{user['email']}.zip">https://spotipydownloader.herokuapp.com/download/{user['email']}.zip</a> </p>
+    <p>Download Link: <a href={file_url}>{file_url}</a> </p>
     <p>    Your playlist is ready. Thank you for using Spotify Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
     </p>
     <div class="form">
@@ -300,3 +322,16 @@ background-color: rgb(66, 71, 77);
         server.login('***REMOVED***', password)
         server.sendmail('***REMOVED***', user['email'], message.as_string())
         server.quit()
+        try:
+            os.remove(f"{user['email']}.zip")
+            shutil.rmtree(directory)
+        except:
+            try:
+                os.remove(f"{user['email']}.zip")
+                shutil.rmtree(directory)
+            except:
+                try:
+                    os.remove(f"{user['email']}.zip")
+                    shutil.rmtree(directory)
+                except:
+                    pass
