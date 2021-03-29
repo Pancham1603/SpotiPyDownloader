@@ -15,6 +15,7 @@ import pymongo
 from pymongo import MongoClient
 import asyncio
 import random
+import json
 
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
@@ -188,7 +189,7 @@ def queueDownload():
                 }
             )
             flash(f"""Download queued! You'll receive a download link on your e-mail within 10minutes.""")
-            return redirect('/retrieve/queue')
+            return redirect('/')
         elif results.count() != 0:
             for result in results:
                 use = result['uses'] + 1
@@ -209,7 +210,7 @@ def queueDownload():
                     'name': session['name'],
                     'email': session['email'],
                     'link': session['link'],
-                    'length_req': session['num'],
+                    'length_req': session['num']
                 }
             )
             flash(f"""Download queued! You'll receive a download link on your e-mail within 10minutes.""")
@@ -221,21 +222,30 @@ def queueDownload():
 
 @app.route('/download/<path:filename>')
 def custom_static(filename):
-    collection3.delete_one(
-        {
-            'email': filename[:-4],
-        }
-    )
-    return_data = io.BytesIO()
-    with open(f"{filename}", 'rb') as fo:
-        return_data.write(fo.read())
-    return_data.seek(0)
-    restricted = ['templates','main.py','wsgi.py','grid.py','requirements.txt', 'Procfile','playlists']
-    if filename not in restricted:
-        os.remove(str(filename))
-    return send_file(return_data, mimetype='application/zip', as_attachment=True,
-                     attachment_filename='MyPlaylist.zip')
+    try:
+        email = filename[:-4]
+        email = email.lower()
+        print(email)
+        user = collection3.find_one(
+            {
+                'email': email
+            }
+        )
+        print(user)
+        file_url = user['url']
+        directory = user['directory']
+        os.remove(f"{user['email']}.zip")
+        shutil.rmtree(directory)
+        collection3.delete_one(
+            {
+                'email': filename[:-4],
+            }
+        )
 
+        # https://drive.google.com/file/d/here/view?usp=sharing
+        return redirect(file_url)
+    except:
+        return redirect(file_url)
 
 @app.errorhandler(404)
 def error(error):
