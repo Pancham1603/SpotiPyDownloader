@@ -167,21 +167,32 @@ while True:
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
                 asyncio.sleep(10)
-            except KeyError:
-                print(f"Downloading: {song}")
-                result = YoutubeSearch(song, max_results=1).to_dict()
-                suffix = result[0]['url_suffix']
-                link = base + suffix
-                out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
-                base, ext = os.path.splitext(out_file)
-                new_file = base + '.mp3'
-                os.rename(out_file, new_file)
-                asyncio.sleep(10)
-            except FileExistsError:
-                pass
             except:
-                print(f"Download Failed: {song}")
-                asyncio.sleep(10)
+                try:
+                    print(f"Downloading: {song}")
+                    result = YoutubeSearch(song, max_results=1).to_dict()
+                    suffix = result[0]['url_suffix']
+                    link = base + suffix
+                    out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                    base, ext = os.path.splitext(out_file)
+                    new_file = base + '.mp3'
+                    os.rename(out_file, new_file)
+                    asyncio.sleep(10)
+
+                except:
+                    try:
+                        print(f"Downloading: {song}")
+                        result = YoutubeSearch(song, max_results=1).to_dict()
+                        suffix = result[0]['url_suffix']
+                        link = base + suffix
+                        out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                        base, ext = os.path.splitext(out_file)
+                        new_file = base + '.mp3'
+                        os.rename(out_file, new_file)
+                        asyncio.sleep(10)
+                    except:
+                        print(f"Download Failed: {song}")
+                        asyncio.sleep(10)
         file_paths = []
         print("getting song file paths")
         for root, directories, files in os.walk(directory):
@@ -215,7 +226,6 @@ while True:
                 'name': user['name'],
                 'email': user['email'].lower(),
                 'url': file_url,
-                'directory': directory,
                 'time': datetime.datetime.now()
             }
         )
