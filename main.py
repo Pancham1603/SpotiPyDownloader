@@ -150,9 +150,9 @@ def queueDownload():
     session['link'] = user_data['link']
     session['num'] = user_data['num']
     results = collection1.find({'email': session['email'].lower()})
-    data = spotify.playlist(link=session['link'], num=session['num'])
+    data = spotify.playlist(link=session['link'], num=20)
     songs = []
-    for item in range(int(session['num'])):
+    for item in range(20):
         try:
             track_name = data['items'][item]['track']['name']
             artist_name = data['items'][item]['track']['artists'][0]['name']
@@ -185,7 +185,7 @@ def queueDownload():
                     'length_req': session['num'],
                 }
             )
-            flash(f"""Download queued! You'll receive a download link on your e-mail by midnight.""")
+            flash(f"""Download queued! You'll receive a download link on your e-mail by midnight.""", 'success')
             return redirect('/')
         elif results.count() != 0:
             for result in results:
@@ -210,10 +210,10 @@ def queueDownload():
                     'length_req': session['num']
                 }
             )
-            flash(f"""Download queued! You'll receive a download link on your e-mail by midnight.""")
+            flash(f"""Download queued! You'll receive a download link on your e-mail by midnight.""", 'success')
             return redirect('/')
     else:
-        flash("Enter a valid Spotify Playlist URL!")
+        flash("Enter a valid Spotify Playlist URL!", 'error')
         return redirect('/')
 
 

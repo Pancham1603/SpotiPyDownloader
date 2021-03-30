@@ -25,7 +25,7 @@ import random
 import json
 import time
 from pydrive.auth import GoogleAuth
-from pydrive.drive import  GoogleDrive
+from pydrive.drive import GoogleDrive
 
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
@@ -39,6 +39,7 @@ client = MongoClient(
 db = ***REMOVED***
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
+
 
 class SpotifyAPI(object):
     access_token = None
@@ -123,7 +124,7 @@ class SpotifyAPI(object):
             return {}
         return r.json()
 
-    def playlist(self, link, num, search_type='playlist'):
+    def playlist(self, link, num, offset):
         link_main = link[34:]
         target_URI = ''
         for char in link_main:
@@ -136,7 +137,7 @@ class SpotifyAPI(object):
             'Authorization': f'Bearer {access_token}'
         }
         endpoint = 'https://api.spotify.com/v1/playlists/'
-        append = f"/tracks?market=IN&fields=items(track(name%2Cartists))&limit={num}&offset=0"
+        append = f"/tracks?market=IN&fields=items(track(name%2Cartists))&limit={num}&offset={offset}"
         lookup_url = f"{endpoint}{target_URI}{append}"
         r = requests.get(lookup_url, headers=headers)
         if r.status_code not in range(200, 299):
@@ -177,16 +178,22 @@ spotify = SpotifyAPI(client_id, client_secret)
 while True:
     queue = collection2.find()
     for user in queue:
-        data = spotify.playlist(link=user['link'], num=user['length_req'])
+        loops_req = int(user['length_req']) // 100 + 1
+        offset = 0
         songs = []
-        for item in range(int(user['length_req'])):
-            try:
-                track_name = data['items'][item]['track']['name']
-                artist_name = data['items'][item]['track']['artists'][0]['name']
-                songs.append(f'{track_name} - {artist_name}')
-                success = True
-            except IndexError:
-                pass
+        for loop in range(loops_req):
+            data = spotify.playlist(link=user['link'], num=100, offset=offset)
+            for item in range(100):
+                try:
+                    track_name = data['items'][item]['track']['name']
+                    artist_name = data['items'][item]['track']['artists'][0]['name']
+                    songs.append(f'{track_name} - {artist_name}')
+                    success = True
+                except IndexError:
+                    pass
+            offset += 100
+        for x in songs:
+            print(x)
         directory = f"{user['email']}'s Playlist"
         user['directory'] = directory
         try:
@@ -234,7 +241,6 @@ while True:
                     except:
                         print(f"Download failed: {song}")
 
-
         file_paths = []
         for root, directories, files in os.walk(directory):
             for filename in files:
@@ -246,9 +252,9 @@ while True:
 
         file = drive.CreateFile(
             {
-                'title':f"{user['email']}.zip",
-                'parents':[{'kind':'drive#fileLink',
-                            'id':"***REMOVED***"}]
+                'title': f"{user['email']}.zip",
+                'parents': [{'kind': 'drive#fileLink',
+                             'id': "***REMOVED***"}]
             }
         )
         file.SetContentFile(f"{user['email'].lower()}.zip")
@@ -341,6 +347,7 @@ background-color: rgb(66, 71, 77);
 <body>
     <h1 cl#ass="heading">SpotiPy Downloader</h1>
     <p>Download Link: <a href="{file_url}">{file_url}</a> </p>
+    <p>The file will be available on the above link for 24hours.</p>
     <p>    Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
     </p>
     <div class="form">
