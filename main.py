@@ -185,7 +185,7 @@ def queueDownload():
                     'length_req': session['num'],
                 }
             )
-            flash(f"""Download queued! You'll receive a download link on your e-mail within 10minutes.""")
+            flash(f"""Download queued! You'll receive a download link on your e-mail by midnight.""")
             return redirect('/')
         elif results.count() != 0:
             for result in results:
@@ -210,7 +210,7 @@ def queueDownload():
                     'length_req': session['num']
                 }
             )
-            flash(f"""Download queued! You'll receive a download link on your e-mail within 10minutes.""")
+            flash(f"""Download queued! You'll receive a download link on your e-mail by midnight.""")
             return redirect('/')
     else:
         flash("Enter a valid Spotify Playlist URL!")
