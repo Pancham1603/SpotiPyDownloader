@@ -253,7 +253,11 @@ body, button, input {
   color: #888;
 }
 
-.flash-message {
+.success {
+  color:#66ff00;
+}
+
+.error {
   color:red;
 }
 
@@ -334,9 +338,13 @@ body, button, input {
             <div class="app-form-group buttons">
               <button type="submit" class="app-form-button">QUEUE DOWNLOAD</button>
             </div>
-            {% for mesg in get_flashed_messages() %}
-      <h4 class="flash-message">{{ mesg }}</h4>
-      {% endfor %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <h4 class="{{ category }}">{{ message }}</h4>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
         </form>
         <script>
           </script>
