@@ -16,6 +16,7 @@ from pymongo import MongoClient
 import asyncio
 import random
 import json
+import time
 #from pydrive.auth import GoogleAuth
 #from pydrive.drive import  GoogleDrive
 
@@ -169,7 +170,7 @@ while True:
                 base, ext = os.path.splitext(out_file)
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
-                asyncio.sleep(10)
+                time.sleep(10)
 
         file_paths = []
         print("getting song file paths")
