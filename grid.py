@@ -24,12 +24,12 @@ import asyncio
 import random
 import json
 import time
-#from pydrive.auth import GoogleAuth
-#from pydrive.drive import  GoogleDrive
+from pydrive.auth import GoogleAuth
+from pydrive.drive import  GoogleDrive
 
-#gauth = GoogleAuth()
-#gauth.LocalWebserverAuth()
-#drive = GoogleDrive(gauth)
+gauth = GoogleAuth()
+gauth.LocalWebserverAuth()
+drive = GoogleDrive(gauth)
 
 client_id = '***REMOVED***'
 client_secret = '***REMOVED***'
@@ -197,6 +197,7 @@ while True:
         base = 'https://www.youtube.com'
 
         for song in songs:
+            try:
                 print(f"Downloading: {song}")
                 result = YoutubeSearch(song, max_results=1).to_dict()
                 suffix = result[0]['url_suffix']
@@ -206,6 +207,33 @@ while True:
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
                 time.sleep(10)
+            except:
+                print(f"Downloading again: {song}")
+                try:
+                    print(f"Downloading: {song}")
+                    result = YoutubeSearch(song, max_results=1).to_dict()
+                    suffix = result[0]['url_suffix']
+                    link = base + suffix
+                    out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
+                    base, ext = os.path.splitext(out_file)
+                    new_file = base + '.mp3'
+                    os.rename(out_file, new_file)
+                    time.sleep(10)
+                except:
+                    print(f"Downloading again: {song}")
+                    try:
+                        print(f"Downloading: {song}")
+                        result = YoutubeSearch(song, max_results=1).to_dict()
+                        suffix = result[0]['url_suffix']
+                        link = base + suffix
+                        out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
+                        base, ext = os.path.splitext(out_file)
+                        new_file = base + '.mp3'
+                        os.rename(out_file, new_file)
+                        time.sleep(10)
+                    except:
+                        print(f"Download failed: {song}")
+
 
         file_paths = []
         for root, directories, files in os.walk(directory):
@@ -217,20 +245,20 @@ while True:
             for file in file_paths:
                 zip.write(file)
 
-        #file = drive.CreateFile(
-        #    {
-        #        'title':f"{user['email']}",
-        #        'parents':[{'kind':'drive#fileLink',
-        #                    'id':"***REMOVED***"}]
-        #    }
-        #)
-        #file.SetContentFile(f"{user['email'].lower()}.zip")
-        #file.Upload()
-        #file_id = file['id']
+        file = drive.CreateFile(
+            {
+                'title':f"{user['email']}",
+                'parents':[{'kind':'drive#fileLink',
+                            'id':"***REMOVED***"}]
+            }
+        )
+        file.SetContentFile(f"{user['email'].lower()}.zip")
+        file.Upload()
+        file_id = file['id']
 
-        #file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
-        #file.content.close()
-        #print("Upload complete")
+        file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
+        file.content.close()
+        print("Upload complete")
         collection2.delete_one(
             {
                 'name': user['name'],
@@ -312,9 +340,9 @@ background-color: rgb(66, 71, 77);
 <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-157cd5b220a5c80d4ff8e0e70ac069bffd87a61252088146915e8726e5d9f147.js"></script>
 <script  src="https://cdpn.io/cp/internal/boomboom/pen.js?key=pen.js-00245fc6-a69f-7fef-45f8-9ca6a7d058a6" crossorigin></script>
 <body>
-    <h1 cl#ass="heading">SPOTIPY DOWNLOADER</h1>
+    <h1 cl#ass="heading">SpotiPy Downloader</h1>
     <p>Download Link: <a href=></a> </p>
-    <p>    Your playlist is ready. Thank you for using Spotify Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
+    <p>    Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
     </p>
     <div class="form">
     <form action="https://forms.gle/33zWczLqooorKUiA8">
