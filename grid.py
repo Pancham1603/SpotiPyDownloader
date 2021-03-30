@@ -162,6 +162,7 @@ while True:
         base = 'https://www.youtube.com'
 
         for song in songs:
+            try:
                 print(f"Downloading: {song}")
                 result = YoutubeSearch(song, max_results=1).to_dict()
                 suffix = result[0]['url_suffix']
@@ -171,6 +172,30 @@ while True:
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
                 time.sleep(10)
+            except:
+                try:
+                    print(f"Downloading: {song}")
+                    result = YoutubeSearch(song, max_results=1).to_dict()
+                    suffix = result[0]['url_suffix']
+                    link = base + suffix
+                    out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                    base, ext = os.path.splitext(out_file)
+                    new_file = base + '.mp3'
+                    os.rename(out_file, new_file)
+                    time.sleep(10)
+                except:
+                    try:
+                        print(f"Downloading: {song}")
+                        result = YoutubeSearch(song, max_results=1).to_dict()
+                        suffix = result[0]['url_suffix']
+                        link = base + suffix
+                        out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                        base, ext = os.path.splitext(out_file)
+                        new_file = base + '.mp3'
+                        os.rename(out_file, new_file)
+                        time.sleep(10)
+                    except:
+                        print(f"Download failed: {song}")
 
         file_paths = []
         print("getting song file paths")
