@@ -22,7 +22,7 @@ client_secret = '***REMOVED***'
 
 client = pymongo.MongoClient(
     "***REMOVED***")
-db = client.test
+db = ***REMOVED***
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 
