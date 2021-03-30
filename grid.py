@@ -4,6 +4,13 @@ import base64
 import requests
 import datetime
 from urllib.parse import urlencode
+from pytube import Caption
+from pytube import CaptionQuery
+from pytube import extract
+from pytube import request
+from pytube import Stream
+from pytube import StreamQuery
+from pytube.exceptions import VideoUnavailable
 from pytube import YouTube
 from youtube_search import YoutubeSearch
 import os
@@ -137,6 +144,34 @@ class SpotifyAPI(object):
         return r.json()
 
 
+class MyYouTube(YouTube):
+    # https://github.com/nficano/pytube/blob/master/pytube/__main__.py#L150
+    def prefetch(self):
+        """Eagerly download all necessary data.
+
+        Eagerly executes all necessary network requests so all other
+        operations don't does need to make calls outside of the interpreter
+        which blocks for long periods of time.
+
+        :rtype: None
+
+        """
+        self.watch_html = request.get(url=self.watch_url)
+        self.embed_html = request.get(url=self.embed_url)
+        self.age_restricted = extract.is_age_restricted(self.watch_html)
+        self.vid_info_url = extract.video_info_url(
+            video_id=self.video_id,
+            watch_url=self.watch_url,
+            watch_html=self.watch_html,
+            embed_html=self.embed_html,
+            age_restricted=self.age_restricted,
+        )
+        self.vid_info = request.get(self.vid_info_url)
+        if not self.age_restricted:
+            self.js_url = extract.js_url(self.watch_html, self.age_restricted)
+            self.js = request.get(self.js_url)
+
+
 spotify = SpotifyAPI(client_id, client_secret)
 
 while True:
@@ -167,7 +202,7 @@ while True:
                 result = YoutubeSearch(song, max_results=1).to_dict()
                 suffix = result[0]['url_suffix']
                 link = base + suffix
-                out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
                 base, ext = os.path.splitext(out_file)
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
@@ -178,7 +213,7 @@ while True:
                     result = YoutubeSearch(song, max_results=1).to_dict()
                     suffix = result[0]['url_suffix']
                     link = base + suffix
-                    out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                    out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
                     base, ext = os.path.splitext(out_file)
                     new_file = base + '.mp3'
                     os.rename(out_file, new_file)
@@ -189,16 +224,14 @@ while True:
                         result = YoutubeSearch(song, max_results=1).to_dict()
                         suffix = result[0]['url_suffix']
                         link = base + suffix
-                        out_file = YouTube(link).streams.filter(only_audio=True).first().download(directory)
+                        out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
                         base, ext = os.path.splitext(out_file)
                         new_file = base + '.mp3'
                         os.rename(out_file, new_file)
                         time.sleep(10)
                     except:
                         print(f"Download failed: {song}")
-
         file_paths = []
-        print("getting song file paths")
         for root, directories, files in os.walk(directory):
             for filename in files:
                 filepath = os.path.join(root, filename)
