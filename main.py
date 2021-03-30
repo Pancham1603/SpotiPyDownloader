@@ -244,6 +244,10 @@ def custom_static(filename):
     except:
         return redirect(file_url)
 
+@app.route("/***REMOVED***")
+def verif():
+    return render_template("***REMOVED***")
+
 @app.errorhandler(404)
 def error(error):
     return render_template('error404.html')
