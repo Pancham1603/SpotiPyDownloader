@@ -36,7 +36,7 @@ client_secret = '***REMOVED***'
 
 client = MongoClient(
     "***REMOVED***")
-db = client.test
+db = ***REMOVED***
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
 
@@ -192,8 +192,11 @@ while True:
         try:
             os.mkdir(directory)
         except:
-            shutil.rmtree(directory)
-            os.mkdir(directory)
+            try:
+                shutil.rmtree(directory)
+                os.mkdir(directory)
+            except:
+                pass
         base = 'https://www.youtube.com'
 
         for song in songs:
@@ -206,7 +209,6 @@ while True:
                 base, ext = os.path.splitext(out_file)
                 new_file = base + '.mp3'
                 os.rename(out_file, new_file)
-                time.sleep(10)
             except:
                 print(f"Downloading again: {song}")
                 try:
@@ -218,7 +220,6 @@ while True:
                     base, ext = os.path.splitext(out_file)
                     new_file = base + '.mp3'
                     os.rename(out_file, new_file)
-                    time.sleep(10)
                 except:
                     print(f"Downloading again: {song}")
                     try:
@@ -230,7 +231,6 @@ while True:
                         base, ext = os.path.splitext(out_file)
                         new_file = base + '.mp3'
                         os.rename(out_file, new_file)
-                        time.sleep(10)
                     except:
                         print(f"Download failed: {song}")
 
@@ -241,13 +241,12 @@ while True:
                 filepath = os.path.join(root, filename)
                 file_paths.append(filepath)
         with ZipFile(f"{user['email'].lower()}.zip", 'w') as zip:
-            print("made zip folder")
             for file in file_paths:
                 zip.write(file)
 
         file = drive.CreateFile(
             {
-                'title':f"{user['email']}",
+                'title':f"{user['email']}.zip",
                 'parents':[{'kind':'drive#fileLink',
                             'id':"***REMOVED***"}]
             }
@@ -341,7 +340,7 @@ background-color: rgb(66, 71, 77);
 <script  src="https://cdpn.io/cp/internal/boomboom/pen.js?key=pen.js-00245fc6-a69f-7fef-45f8-9ca6a7d058a6" crossorigin></script>
 <body>
     <h1 cl#ass="heading">SpotiPy Downloader</h1>
-    <p>Download Link: <a href=></a> </p>
+    <p>Download Link: <a href="{file_url}">{file_url}</a> </p>
     <p>    Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
     </p>
     <div class="form">
