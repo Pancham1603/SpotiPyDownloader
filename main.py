@@ -17,11 +17,11 @@ import asyncio
 import random
 import json
 
-client_id = '***REMOVED***'
-client_secret = '***REMOVED***'
+client_id = ''
+client_secret = ''
 
 client = pymongo.MongoClient(
-    "***REMOVED***")
+    "")
 db = ***REMOVED***
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
@@ -242,9 +242,9 @@ def custom_static(filename):
         return redirect(file_url)
 
 
-@app.route("/***REMOVED***")
+@app.route("/")
 def verif():
-    return render_template("***REMOVED***")
+    return render_template("")
 
 
 @app.errorhandler(404)
