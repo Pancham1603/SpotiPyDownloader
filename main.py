@@ -219,7 +219,6 @@ def queueDownload():
 
 @app.route('/download/<path:filename>')
 def custom_static(filename):
-    try:
         email = filename[:-4]
         email = email.lower()
         print(email)
@@ -241,12 +240,12 @@ def custom_static(filename):
 
         # https://drive.google.com/file/d/here/view?usp=sharing
         return redirect(file_url)
-    except:
-        return redirect(file_url)
+
 
 @app.route("/***REMOVED***")
 def verif():
     return render_template("***REMOVED***")
+
 
 @app.errorhandler(404)
 def error(error):

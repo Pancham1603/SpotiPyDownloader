@@ -178,7 +178,7 @@ spotify = SpotifyAPI(client_id, client_secret)
 while True:
     queue = collection2.find()
     for user in queue:
-        print(f"Downloading starting: {user['name']} {user['length_req']}")        
+        print(f"Download starting: {user['name']} {user['length_req']}")
         num = int(user['length_req'])
         if num > 100:
             songs = []
@@ -188,12 +188,19 @@ while True:
                 data = spotify.playlist(link=user['link'], num=100, offset=offset)
                 for item in range(100):
                     try:
-                        track_name = data['items'][item]['track']['name']
-                        artist_name = data['items'][item]['track']['artists'][0]['name']
-                        songs.append(f'{track_name} - {artist_name}')
-                        success = True
+                        none_object = data['items'][item]['track']
                     except IndexError:
                         pass
+                    if none_object == None:
+                        pass
+                    else:
+                        try:
+                            track_name = data['items'][item]['track']['name']
+                            artist_name = data['items'][item]['track']['artists'][0]['name']
+                            songs.append(f'{track_name} - {artist_name}')
+                            success = True
+                        except IndexError:
+                            pass
                 offset += 100
         else:
             songs = []
@@ -252,10 +259,10 @@ while True:
                         os.rename(out_file, new_file)
                     except:
                         print(f"Download failed: {song}")
-        
+
         print(f"Playlist for {user['name']} downloaded successfully!")
         file_paths = []
-        
+
         for root, directories, files in os.walk(directory):
             for filename in files:
                 filepath = os.path.join(root, filename)
@@ -268,7 +275,7 @@ while True:
             {
                 'title': f"{user['email']}.zip",
                 'parents': [{'kind': 'drive#fileLink',
-                             'id': "***REMOVED***"}]
+                             'id': ""}]
             }
         )
         file.SetContentFile(f"{user['email'].lower()}.zip")
@@ -284,13 +291,13 @@ while True:
                 'name': user['name'],
                 'email': user['email'].lower(),
                 'link': user['link'],
-                'length_req': user['length_req'],
+                'length_req': user['length_req']
             }
         )
 
         message = EmailMessage()
         message['subject'] = 'Feedback - SpotiPy Downloader'
-        message['from'] = '***REMOVED***'
+        message['from'] = ''
         message['to'] = user['email'].lower()
         html_message = """
 <!DOCTYPE html>
@@ -308,7 +315,7 @@ while True:
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
 
 <style class="INLINE_PEN_STYLESHEET_ID" >
-    *, *:before, *:after {
+*, *:before, *:after {
 box-sizing: border-box;
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
@@ -334,12 +341,12 @@ color: #1db954;
 }
 
 p {
-    text-align: center;
-    line-height: 17px;
+text-align: center;
+line-height: 17px;
 }
 
 a {
-    color: rgb(66, 71, 77);
+color: rgb(66, 71, 77);
 }
 
 button {
@@ -348,38 +355,41 @@ background-color: rgb(66, 71, 77);
 }
 
 .form {
-    text-align: center;
-    align-items: center;
-    padding-top: 10px;
+text-align: center;
+align-items: center;
+padding-top: 10px;
+}
+
+.note {
+    color: red;
 }
 </style>
 """
-        html_message += f"""
-        
+        html_message += f"""   
 <script src="https://cpwebassets.codepen.io/assets/common/stopExecutionOnTimeout-157cd5b220a5c80d4ff8e0e70ac069bffd87a61252088146915e8726e5d9f147.js"></script>
 <script  src="https://cdpn.io/cp/internal/boomboom/pen.js?key=pen.js-00245fc6-a69f-7fef-45f8-9ca6a7d058a6" crossorigin></script>
 <body>
-    <h1 cl#ass="heading">SpotiPy Downloader</h1>
-    <p>Download Link: <a href="{file_url}">{file_url}</a> </p>
-    <p>The file will be available on the above link for 24hours.</p>
-    <p>Hey {name.title()}! Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
-    </p>
-    <div class="form">
-    <form action="https://forms.gle/33zWczLqooorKUiA8">
-        <button type="submit">FEEDBACK FORM</button>
-    </form>
+<h1 cl#ass="heading">SpotiPy Downloader</h1>
+<p>Download Link: <a href="{file_url}">{file_url}</a> </p>
+<p>The file will be available on the above link for 24hours.</p>
+<p>Hey {name.title()}! Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
+</p>
+<div class="form">
+<form action="https://forms.gle/33zWczLqooorKUiA8">
+    <button type="submit">FEEDBACK FORM</button>
+</form>
+<p class="note"> Note: Some songs might be missing and some wrong audio files might be present in the playlist.
 </div>
 </body>
-
 </html>
 """
         message.add_alternative(html_message, subtype='html')
-        password = "***REMOVED***"
+        password = ""
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login('***REMOVED***', password)
-        server.sendmail('***REMOVED***', user['email'], message.as_string())
+        server.login('', password)
+        server.sendmail('', user['email'], message.as_string())
         server.quit()
         print("Link mailed")
         try:
