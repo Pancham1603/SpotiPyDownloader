@@ -23,9 +23,9 @@ from pymongo import MongoClient
 import asyncio
 import random
 import json
-import time
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from pathlib import Path
 
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
@@ -178,12 +178,27 @@ spotify = SpotifyAPI(client_id, client_secret)
 while True:
     queue = collection2.find()
     for user in queue:
-        loops_req = int(user['length_req']) // 100 + 1
-        offset = 0
-        songs = []
-        for loop in range(loops_req):
-            data = spotify.playlist(link=user['link'], num=100, offset=offset)
-            for item in range(100):
+        print(f"Downloading starting: {user['name']} {user['length_req']}")        
+        num = int(user['length_req'])
+        if num > 100:
+            songs = []
+            loops_req = int(user['length_req']) // 100 + 1
+            offset = 0
+            for loop in range(loops_req):
+                data = spotify.playlist(link=user['link'], num=100, offset=offset)
+                for item in range(100):
+                    try:
+                        track_name = data['items'][item]['track']['name']
+                        artist_name = data['items'][item]['track']['artists'][0]['name']
+                        songs.append(f'{track_name} - {artist_name}')
+                        success = True
+                    except IndexError:
+                        pass
+                offset += 100
+        else:
+            songs = []
+            data = spotify.playlist(link=user['link'], num=num, offset=0)
+            for item in range(num):
                 try:
                     track_name = data['items'][item]['track']['name']
                     artist_name = data['items'][item]['track']['artists'][0]['name']
@@ -191,9 +206,7 @@ while True:
                     success = True
                 except IndexError:
                     pass
-            offset += 100
-        for x in songs:
-            print(x)
+
         directory = f"{user['email']}'s Playlist"
         user['directory'] = directory
         try:
@@ -205,7 +218,6 @@ while True:
             except:
                 pass
         base = 'https://www.youtube.com'
-
         for song in songs:
             try:
                 print(f"Downloading: {song}")
@@ -240,8 +252,10 @@ while True:
                         os.rename(out_file, new_file)
                     except:
                         print(f"Download failed: {song}")
-
+        
+        print(f"Playlist for {user['name']} downloaded successfully!")
         file_paths = []
+        
         for root, directories, files in os.walk(directory):
             for filename in files:
                 filepath = os.path.join(root, filename)
@@ -263,6 +277,7 @@ while True:
 
         file_url = f"https://drive.google.com/file/d/{file_id}/view?usp=sharing"
         file.content.close()
+        name = user['name']
         print("Upload complete")
         collection2.delete_one(
             {
@@ -273,9 +288,8 @@ while True:
             }
         )
 
-        print(f"Playlist for {user['name']} downloaded successfully!")
         message = EmailMessage()
-        message['subject'] = 'Feedback - Spotify Downloader'
+        message['subject'] = 'Feedback - SpotiPy Downloader'
         message['from'] = '***REMOVED***'
         message['to'] = user['email'].lower()
         html_message = """
@@ -348,7 +362,7 @@ background-color: rgb(66, 71, 77);
     <h1 cl#ass="heading">SpotiPy Downloader</h1>
     <p>Download Link: <a href="{file_url}">{file_url}</a> </p>
     <p>The file will be available on the above link for 24hours.</p>
-    <p>    Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
+    <p>Hey {name.title()}! Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
     </p>
     <div class="form">
     <form action="https://forms.gle/33zWczLqooorKUiA8">
