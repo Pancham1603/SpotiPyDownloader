@@ -31,11 +31,11 @@ gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
-client_id = '***REMOVED***'
-client_secret = '***REMOVED***'
+client_id = ''
+client_secret = ''
 
 client = MongoClient(
-    "***REMOVED***")
+    "")
 db = ***REMOVED***
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
