@@ -17,15 +17,16 @@ import asyncio
 import random
 import json
 
-client_id = ''
-client_secret = ''
+
+client_id = '***REMOVED***'
+client_secret = '***REMOVED***'
 
 client = pymongo.MongoClient(
-    "")
+    "***REMOVED***")
 db = ***REMOVED***
 collection1 = ***REMOVED***
 collection2 = ***REMOVED***
-
+collection3 = ***REMOVED***
 
 class SpotifyAPI(object):
     access_token = None
@@ -139,6 +140,14 @@ spotify = SpotifyAPI(client_id, client_secret)
 @app.route('/home')
 @app.route('/')
 def initiation():
+    stats = collection3.find()
+    for stat in stats:
+        user_count = stat['users']
+        song_count = stat['songs']
+        playlist_count = stat['playlists']
+    flash(f'{int(user_count)}', 'user-count')
+    flash(f'{int(playlist_count)}', 'playlist-count')
+    flash(f'{int(song_count)}', 'song-count')
     return render_template("index.html")
 
 
@@ -242,9 +251,9 @@ def custom_static(filename):
         return redirect(file_url)
 
 
-@app.route("/")
+@app.route("/***REMOVED***")
 def verif():
-    return render_template("")
+    return render_template("***REMOVED***")
 
 
 @app.errorhandler(404)
