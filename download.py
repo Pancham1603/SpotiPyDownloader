@@ -31,8 +31,8 @@ gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
-client_id = '***REMOVED***'
-client_secret = '***REMOVED***'
+client_id = ''
+client_secret = ''
 
 client = MongoClient(
     "***REMOVED***")
@@ -293,7 +293,7 @@ while True:
             {
                 'title': f"{user['email']}.zip",
                 'parents': [{'kind': 'drive#fileLink',
-                             'id': "***REMOVED***"}]
+                             'id': ""}]
             }
         )
         file.SetContentFile(f"{user['email'].lower()}.zip")
@@ -403,7 +403,7 @@ padding-top: 10px;
 </html>
 """
         message.add_alternative(html_message, subtype='html')
-        password = "***REMOVED***"
+        password = ""
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
