@@ -145,9 +145,9 @@ def initiation():
         user_count = stat['users']
         song_count = stat['songs']
         playlist_count = stat['playlists']
-    flash(f'{int(user_count)}', 'user-count')
-    flash(f'{int(playlist_count)}', 'playlist-count')
-    flash(f'{int(song_count)}', 'song-count')
+    #flash(f'{int(user_count)}', 'user-count')
+    #flash(f'{int(playlist_count)}', 'playlist-count')
+    #flash(f'{int(song_count)}', 'song-count')
     return render_template("index.html")
 
 
