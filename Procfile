@@ -1,2 +1,2 @@
 web: gunicorn wsgi:app
-worker: python grid.py
+worker: python download.py
