@@ -1,31 +1,21 @@
-from flask import Flask, render_template, request, url_for, session, redirect, send_file, flash
+from flask import request
 import smtplib
 import base64
 import requests
 import datetime
 from urllib.parse import urlencode
-from pytube import Caption
-from pytube import CaptionQuery
 from pytube import extract
 from pytube import request
-from pytube import Stream
-from pytube import StreamQuery
-from pytube.exceptions import VideoUnavailable
 from pytube import YouTube
 from youtube_search import YoutubeSearch
 import os
 from zipfile import ZipFile
-import io
 import shutil
 from email.message import EmailMessage
-import pymongo
 from pymongo import MongoClient
-import asyncio
-import random
-import json
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from pathlib import Path
+
 
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
@@ -35,11 +25,11 @@ client_id = ''
 client_secret = ''
 
 client = MongoClient(
-    "***REMOVED***")
-db = ***REMOVED***
-collection1 = ***REMOVED***
-collection2 = ***REMOVED***
-collection3 = ***REMOVED***
+    "")
+db =
+collection1 =
+collection2 =
+collection3 =
 
 
 class SpotifyAPI(object):
@@ -178,24 +168,13 @@ spotify = SpotifyAPI(client_id, client_secret)
 
 while True:
     queue = collection2.find()
-    stats = collection3.find()
-    for stat in stats:
-        user_count = stat['users']
-        song_count = stat['songs']
-        user_const = stat['users']
-        song_const = stat['songs']
-        playlist_count = stat['playlists']
-        playlist_const = stat['playlists']
     for user in queue:
         user_check = collection1.find_one(
             {
                 'email': user['email'],
-                'uses':1
+                'uses': 1
             }
         )
-        if user_check != None:
-            user_count+=1
-        playlist_count+=1
         print(f"Download starting: {user['name']} {user['length_req']}")
         num = int(user['length_req'])
         if num > 100:
@@ -231,7 +210,6 @@ while True:
                     success = True
                 except IndexError:
                     pass
-        song_count+= len(songs)
         directory = f"{user['email']}'s Playlist"
         user['directory'] = directory
         try:
@@ -315,7 +293,7 @@ while True:
 
         message = EmailMessage()
         message['subject'] = 'Download Complete - SpotiPy Downloader'
-        message['from'] = '***REMOVED***'
+        message['from'] = ''
         message['to'] = user['email'].lower()
         html_message = """
 <!DOCTYPE html>
@@ -407,8 +385,8 @@ padding-top: 10px;
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login('***REMOVED***', password)
-        server.sendmail('***REMOVED***', user['email'], message.as_string())
+        server.login('', password)
+        server.sendmail('', user['email'], message.as_string())
         server.quit()
         print("Link mailed")
         try:
@@ -424,16 +402,3 @@ padding-top: 10px;
                     shutil.rmtree(directory)
                 except:
                     pass
-        myquery = {
-            'users':int(user_const),
-            'songs': int(song_const),
-            'playlists': int(playlist_const),
-        }
-        new = {
-            "$set":{
-                'users':int(user_count),
-                'songs':int(song_count),
-                'playlists':int(playlist_count),
-            }
-        }
-        collection3.update_one(myquery,new)
