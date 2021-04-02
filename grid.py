@@ -36,9 +36,9 @@ client_secret = ''
 
 client = MongoClient(
     "")
-db = ***REMOVED***
-collection1 = ***REMOVED***
-collection2 = ***REMOVED***
+db = client.spotipydl
+collection1 = db['users']
+collection2 = db['download_queue']
 
 
 class SpotifyAPI(object):

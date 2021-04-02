@@ -1,32 +1,22 @@
 from flask import Flask, render_template, request, url_for, session, redirect, send_file, flash, send_from_directory
-import smtplib
 import base64
 import requests
 import datetime
 from urllib.parse import urlencode
-from pytube import YouTube
-from youtube_search import YoutubeSearch
 import os
-from zipfile import ZipFile
-import io
 import shutil
-from email.message import EmailMessage
 import pymongo
-from pymongo import MongoClient
-import asyncio
-import random
-import json
 
 
 client_id = ''
 client_secret = ''
 
 client = pymongo.MongoClient(
-    "***REMOVED***")
-db = ***REMOVED***
-collection1 = ***REMOVED***
-collection2 = ***REMOVED***
-collection3 = ***REMOVED***
+    "")
+db =
+collection1 =
+collection2 =
+collection3 =
 
 class SpotifyAPI(object):
     access_token = None
@@ -251,9 +241,9 @@ def custom_static(filename):
         return redirect(file_url)
 
 
-@app.route("/***REMOVED***")
+@app.route("/google270162ca11c0931d.html")
 def verif():
-    return render_template("***REMOVED***")
+    return render_template("google270162ca11c0931d.html")
 
 
 @app.errorhandler(404)
