@@ -8,15 +8,15 @@ import shutil
 import pymongo
 
 
-client_id = ''
-client_secret = ''
+client_id = '***REMOVED***'
+client_secret = '***REMOVED***'
 
 client = pymongo.MongoClient(
-    "")
-db =
-collection1 =
-collection2 =
-collection3 =
+    "***REMOVED***")
+db = ***REMOVED***
+collection1 = ***REMOVED***
+collection2 = ***REMOVED***
+collection3 = ***REMOVED***
 
 class SpotifyAPI(object):
     access_token = None
@@ -145,7 +145,7 @@ def initiation():
 def queueDownload():
     user_data = request.form
     session['name'] = user_data['name']
-    session['email'] = user_data['email']
+    session['email'] = user_data['email'].lower()
     session['link'] = user_data['link']
     session['num'] = user_data['num']
     results = collection1.find({'email': session['email'].lower()})
@@ -179,7 +179,7 @@ def queueDownload():
             collection2.insert_one(
                 {
                     'name': session['name'],
-                    'email': session['email'],
+                    'email': session['email'].lower(),
                     'link': session['link'],
                     'length_req': session['num'],
                 }
@@ -199,12 +199,12 @@ def queueDownload():
                     'uses': use}
             }
 
-            query = {'email': session['email']}
+            query = {'email': session['email'].lower()}
             collection1.update_one(query, document)
             collection2.insert_one(
                 {
                     'name': session['name'],
-                    'email': session['email'],
+                    'email': session['email'].lower(),
                     'link': session['link'],
                     'length_req': session['num']
                 }
@@ -223,13 +223,13 @@ def custom_static(filename):
         print(email)
         user = collection3.find_one(
             {
-                'email': email
+                'email': email.lower()
             }
         )
         print(user)
         file_url = user['url']
         directory = user['directory']
-        os.remove(f"{user['email']}.zip")
+        os.remove(f"{user['email'].lower()}.zip")
         shutil.rmtree(directory)
         collection3.delete_one(
             {
