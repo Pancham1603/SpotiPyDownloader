@@ -8,15 +8,15 @@ import shutil
 import pymongo
 
 
-client_id = '***REMOVED***'
-client_secret = '***REMOVED***'
+client_id = ''
+client_secret = ''
 
 client = pymongo.MongoClient(
-    "***REMOVED***")
-db = ***REMOVED***
-collection1 = ***REMOVED***
-collection2 = ***REMOVED***
-collection3 = ***REMOVED***
+    "")
+db =
+collection1 =
+collection2 =
+collection3 =
 
 class SpotifyAPI(object):
     access_token = None
@@ -241,9 +241,9 @@ def custom_static(filename):
         return redirect(file_url)
 
 
-@app.route("/***REMOVED***")
+@app.route("/googleverification.html")
 def verif():
-    return render_template("***REMOVED***")
+    return render_template("google.html")
 
 
 @app.errorhandler(404)
