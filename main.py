@@ -1,22 +1,28 @@
-from flask import Flask, render_template, request, url_for, session, redirect, send_file, flash, send_from_directory
+from flask import Flask, render_template, request, session, redirect, send_file, flash
 import base64
 import requests
 import datetime
 from urllib.parse import urlencode
 import os
-import shutil
 import pymongo
-
+import re
+from youtube_search import YoutubeSearch
+from pytube import extract
+from pytube import YouTube
+from math import ceil
 
 client_id = ''
 client_secret = ''
 
 client = pymongo.MongoClient(
-    "")
-db =
+    )
+db = ***REMOVED***
 collection1 =
 collection2 =
 collection3 =
+collection4 =
+collection5 =
+
 
 class SpotifyAPI(object):
     access_token = None
@@ -83,7 +89,7 @@ class SpotifyAPI(object):
             return self.get_access_token()
         return token
 
-    def search(self, query, search_type='artist'):
+    def search(self, query, search_type='track'):
         access_token = self.get_access_token()
         headers = {
             'Authorization': f'Bearer {access_token}'
@@ -93,10 +99,8 @@ class SpotifyAPI(object):
             'q': query,
             'type': search_type.lower()
         })
-        print(data)
         lookup_url = f"{endpoint}?{data}"
         r = requests.get(lookup_url, headers=headers)
-        print(lookup_url)
         if r.status_code not in range(200, 299):
             return {}
         return r.json()
@@ -122,6 +126,34 @@ class SpotifyAPI(object):
         return r.json()
 
 
+class MyYouTube(YouTube):
+    # https://github.com/nficano/pytube/blob/master/pytube/__main__.py#L150
+    def prefetch(self):
+        """Eagerly download all necessary data.
+
+        Eagerly executes all necessary network requests so all other
+        operations don't does need to make calls outside of the interpreter
+        which blocks for long periods of time.
+
+        :rtype: None
+
+        """
+        self.watch_html = request.get(url=self.watch_url)
+        self.embed_html = request.get(url=self.embed_url)
+        self.age_restricted = extract.is_age_restricted(self.watch_html)
+        self.vid_info_url = extract.video_info_url(
+            video_id=self.video_id,
+            watch_url=self.watch_url,
+            watch_html=self.watch_html,
+            embed_html=self.embed_html,
+            age_restricted=self.age_restricted,
+        )
+        self.vid_info = request.get(self.vid_info_url)
+        if not self.age_restricted:
+            self.js_url = extract.js_url(self.watch_html, self.age_restricted)
+            self.js = request.get(self.js_url)
+
+
 app = Flask(__name__)
 app.secret_key = 'demo'
 spotify = SpotifyAPI(client_id, client_secret)
@@ -135,9 +167,28 @@ def initiation():
         user_count = stat['users']
         song_count = stat['songs']
         playlist_count = stat['playlists']
-    #flash(f'{int(user_count)}', 'user-count')
-    #flash(f'{int(playlist_count)}', 'playlist-count')
-    #flash(f'{int(song_count)}', 'song-count')
+    # flash(f'{int(user_count)}', 'user-count')
+    # flash(f'{int(playlist_count)}', 'playlist-count')
+    # flash(f'{int(song_count)}', 'song-count')
+    try:
+        results = collection5.find()
+        for result in results:
+            try:
+                path = result['path']
+                collection5.delete_one(
+                    {
+                        'path': path
+                    }
+                )
+                os.remove(path)
+            except:
+                collection5.delete_one(
+                    {
+                        'path': path
+                    }
+                )
+    except:
+        pass
     return render_template("index.html")
 
 
@@ -164,7 +215,6 @@ def queueDownload():
             break
     if success:
         if results.count() == 0:
-
             collection1.insert_one({
                 'name': session['name'],
                 'email': session['email'].lower(),
@@ -175,7 +225,6 @@ def queueDownload():
                 },
                 'uses': 1
             })
-
             collection2.insert_one(
                 {
                     'name': session['name'],
@@ -216,34 +265,123 @@ def queueDownload():
         return redirect('/')
 
 
-@app.route('/download/<path:filename>')
-def custom_static(filename):
-        email = filename[:-4]
-        email = email.lower()
-        print(email)
-        user = collection3.find_one(
+@app.route("/fetchsearchresults", methods=['GET', 'POST'])
+def fetchsearchresults():
+    spotify = SpotifyAPI(client_id, client_secret)
+    response = request.form
+    query = response['query']
+    name = response['name']
+    email = response['email']
+#For entry in user database
+    results = collection1.find({'email': email.lower()})
+    if results.count() == 0:
+        collection1.insert_one({
+            'name': name,
+            'email': email.lower(),
+            'request': {
+                'search_query': query,
+                'time': datetime.datetime.now()
+            },
+            'uses': 1
+        })
+    elif results.count() != 0:
+        for result in results:
+            use = result['uses'] + 1
+
+        document = {'$set':
+            {f'request{use}': {
+                'search_query': query,
+                'time': datetime.datetime.now()
+            },
+                'uses': use}
+        }
+
+        db_query = {'email': email.lower()}
+        collection1.update_one(db_query, document)
+#fetching matches from spotify
+    results = spotify.search(query)
+    result_length = len(results['tracks']['items'])
+    if result_length == 0:
+        flash(f"No matches found!\nfor '{query}'", 'error')
+        search_results = []
+        length = 0
+        return render_template("search_results.html", search_results=search_results, length = length)
+    else:
+        search_results = {}
+        count = 0
+        for result in range(result_length):
+            song = results['tracks']['items'][result]['album']['name']
+            artist = results['tracks']['items'][result]['album']['artists'][0]['name']
+            img = results['tracks']['items'][result]['album']['images'][1]['url']
+            re_string = f"/{song}{artist.title()}"
+            redirect = re.sub('[^A-Za-z0-9]+', '', re_string.lower())
+            search_results[count] = {
+                'name': f"{song} - {artist.title()}",
+                'redirect': f"/download/{redirect}",
+                'img_src': img
+            }
+            count += 1
+            length = int(len(search_results))
+            half = int(ceil(length / 2))
+            collection4.insert_one(
+                {
+                    'name': f"{song} - {artist.title()}",
+                    'redirect': redirect,
+                    'img_src': img
+                }
+            )
+        flash(f"""Click on the required song.""", 'success')
+        return render_template("search_results.html", search_results=search_results, length=length, half=half)
+
+
+@app.route('/download/<path:songname>')
+def custom_song_path(songname):
+    results = collection4.find_one(
+        {
+            'redirect': songname
+        }
+    )
+    song = results['name']
+    img = results['img_src']
+    base = 'https://www.youtube.com'
+    try:
+        print(f"Downloading: {song}")
+        result = YoutubeSearch(song, max_results=1).to_dict()
+        suffix = result[0]['url_suffix']
+        link = base + suffix
+        out_file = MyYouTube(link).streams.filter(only_audio=True).first().download()
+        base, ext = os.path.splitext(out_file)
+        new_file = base + '.mp3'
+        os.rename(out_file, new_file)
+        collection5.insert_one(
             {
-                'email': email.lower()
+                'path': new_file
             }
         )
-        print(user)
-        file_url = user['url']
-        directory = user['directory']
-        os.remove(f"{user['email'].lower()}.zip")
-        shutil.rmtree(directory)
-        collection3.delete_one(
-            {
-                'email': filename[:-4],
-            }
-        )
+        return send_file(new_file, mimetype='audio/mpeg', as_attachment=True, attachment_filename=f"{song}.mp3")
+    except:
+        try:
+            print(f"Downloading: {song}")
+            result = YoutubeSearch(song, max_results=1).to_dict()
+            suffix = result[0]['url_suffix']
+            link = base + suffix
+            out_file = MyYouTube(link).streams.filter(only_audio=True).first().download()
+            base, ext = os.path.splitext(out_file)
+            new_file = base + '.mp3'
+            os.rename(out_file, new_file)
+            collection5.insert_one(
+                {
+                    'path': new_file
+                }
+            )
+            return send_file(new_file, mimetype='audio/mpeg', as_attachment=True, attachment_filename=f"{song}.mp3")
+        except:
+            return render_template('error500.html')
 
-        # https://drive.google.com/file/d/here/view?usp=sharing
-        return redirect(file_url)
 
-
-@app.route("/googleverification.html")
+@app.route("/***REMOVED***")
 def verif():
-    return render_template("google.html")
+    return render_template("***REMOVED***")
 
 
 @app.errorhandler(404)

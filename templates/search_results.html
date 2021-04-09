@@ -8,7 +8,7 @@
 
   <meta name="robots" content="noindex">
 <title>SpotiPy Downloader</title>
-  
+
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
@@ -116,19 +116,15 @@ body, button, input {
   padding: 50px;
 }
 
-.screen-body-item.left {
-  display: flex;
-  flex-direction: column;
-}
-
-.screen-body-item-left {
+.screen-body-item-left-result {
   flex: 1;
-  padding-right: 50px;
-  padding-top:50px;
-  padding-bottom:50px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  padding-left: 5px;
+  padding-right: 40px;
 }
 
-.screen-body-item-left.left {
+.screen-body-item.left {
   display: flex;
   flex-direction: column;
 }
@@ -184,6 +180,7 @@ body, button, input {
   border-bottom: 1px solid #666;
   color: #ddd;
   font-size: 14px;
+  text-transform: uppercase;
   outline: none;
   transition: border-color .2s;
 }
@@ -201,34 +198,6 @@ body, button, input {
 }
 
 .app-form-control:focus {
-  border-bottom-color: #ddd;
-}
-
-.app-form-control-left {
-  width: 100%;
-  padding: 10px 0;
-  background: none;
-  border: none;
-  border-bottom: 1px solid #666;
-  color: #ddd;
-  font-size: 14px;
-  outline: none;
-  transition: border-color .2s;
-}
-
-.app-form-control-left::-moz-placeholder {
-  color: #666;
-}
-
-.app-form-control-left:-ms-input-placeholder {
-  color: #666;
-}
-
-.app-form-control-left::placeholder {
-  color: #666;
-}
-
-.app-form-control-left:focus {
   border-bottom-color: #ddd;
 }
 
@@ -264,6 +233,11 @@ body, button, input {
 .dev_contact {
   padding-left: 10px;
   padding-bottom: 10px;
+}
+
+.search_results {
+  color: #f8f8ff;
+  font-weight: 1px
 }
 
 @media screen and (max-width: 520px) {
@@ -355,64 +329,27 @@ body, button, input {
             <span><a href="/" class="title">SpotiPy</a></span>
             <span><a href="/" class="title">Downloader</a></span>
           </div>
-          <div class="screen-body-item-left">
-          <form class="app-form" method="POST" action="/fetchsearchresults">
-            <div class="app-form-group">
-              <input class="app-form-control-left" name="name" placeholder="NAME" required>
-            </div>
-            <div class="app-form-group">
-              <input class="app-form-control-left" name="email" placeholder="EMAIL" type="email" required>
-            </div>
-            <div class="app-form-group">
-              <input class="app-form-control-left" name="query" placeholder="FIND SONGS/ARTISTS" required>
-            </div>
-            <div class="app-form-group buttons">
-              <button type="submit" class="app-form-button">SEARCH</button>
-            </div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <h4 class="{{ category }}">{{ message }}</h4>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-        </form>
-        <script>
-          </script>
+          <div class="screen-body-item-left-result">
+            {% for num in range(half) %}
+      <h3><a class="search_results" href={{search_results[num]['redirect']}}>{{search_results[num]['name']}}</a></h3>
+  {% endfor %}
         </div>
           <div class="app-contact">MADE WITH ❤ BY <a class="mail" href="mailto:***REMOVED***">PANCHAM AGARWAL</a> </div>
         </div>
         <div class="screen-body-item">
-          <form class="app-form" method="POST" action="/queuedownload">
-            <div class="app-form-group">
-              <input class="app-form-control" name="name" placeholder="NAME" required>
-            </div>
-            <div class="app-form-group">
-              <input class="app-form-control" name="email" type="email" placeholder="EMAIL" required>
-            </div>
-            <div class="app-form-group">
-              <input class="app-form-control" name="link" type="url" placeholder="PLAYLIST LINK" required>
-            </div>
-            <div class="app-form-group message">
-              <input class="app-form-control" name="num" type="number" placeholder="NO. OF SONGS" required>
-            </div>
-            <div class="app-form-group buttons">
-              <button type="submit" class="app-form-button">QUEUE DOWNLOAD</button>
-            </div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for num in range(half,length) %}
+      <h3><a class="search_results" href={{search_results[num]['redirect']}}>{{search_results[num]['name']}}</a></h3>
+  {% endfor %}
+          {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
     {% for category, message in messages %}
       <h4 class="{{ category }}">{{ message }}</h4>
     {% endfor %}
   {% endif %}
 {% endwith %}
-        </form>
-        <script>
-          </script>
         </div>
       </div>
     </div>
-    <div class="rate-notice">Due to <a class='rate-limit-link' href="https://en.wikipedia.org/wiki/Rate_limiting#:~:text=A%20rate%20limiting%20algorithm%20is,code%20429%3A%20Too%20Many%20Requests.">IP rate limiting</a> download links will be mailed by midnight.</div>
   </div>
 </div>
 
