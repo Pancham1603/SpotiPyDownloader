@@ -11,17 +11,17 @@ from pytube import extract
 from pytube import YouTube
 from math import ceil
 
-client_id = ''
-client_secret = ''
+client_id = '***REMOVED***'
+client_secret = '***REMOVED***'
 
 client = pymongo.MongoClient(
-    )
+    "***REMOVED***")
 db = ***REMOVED***
-collection1 =
-collection2 =
-collection3 =
-collection4 =
-collection5 =
+collection1 = ***REMOVED***
+collection2 = ***REMOVED***
+collection3 = ***REMOVED***
+collection4 = ***REMOVED***
+collection5 = ***REMOVED***
 
 
 class SpotifyAPI(object):

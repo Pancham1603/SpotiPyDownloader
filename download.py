@@ -21,15 +21,15 @@ gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
-client_id = ''
-client_secret = ''
+client_id = '***REMOVED***'
+client_secret = '***REMOVED***'
 
 client = MongoClient(
-    "")
-db =
-collection1 =
-collection2 =
-collection3 =
+    "***REMOVED***")
+db = ***REMOVED***
+collection1 = ***REMOVED***
+collection2 = ***REMOVED***
+collection3 = ***REMOVED***
 
 
 class SpotifyAPI(object):
@@ -271,7 +271,7 @@ while True:
             {
                 'title': f"{user['email'].lower()}.zip",
                 'parents': [{'kind': 'drive#fileLink',
-                             'id': ""}]
+                             'id': "***REMOVED***"}]
             }
         )
         file.SetContentFile(f"{user['email'].lower()}.zip")
@@ -293,7 +293,7 @@ while True:
 
         message = EmailMessage()
         message['subject'] = 'Download Complete - SpotiPy Downloader'
-        message['from'] = ''
+        message['from'] = '***REMOVED***'
         message['to'] = user['email'].lower()
         html_message = """
 <!DOCTYPE html>
@@ -381,12 +381,12 @@ padding-top: 10px;
 </html>
 """
         message.add_alternative(html_message, subtype='html')
-        password = ""
+        password = "***REMOVED***"
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login('', password)
-        server.sendmail('', user['email'].lower(), message.as_string())
+        server.login('***REMOVED***', password)
+        server.sendmail('***REMOVED***', user['email'].lower(), message.as_string())
         server.quit()
         print("Link mailed")
         try:
