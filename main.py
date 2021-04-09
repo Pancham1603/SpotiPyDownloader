@@ -315,22 +315,19 @@ def fetchsearchresults():
             song = results['tracks']['items'][result]['name']
             artist = results['tracks']['items'][result]['album']['artists'][0]['name']
             popularity = results['tracks']['items'][result]['popularity']
-            img = results['tracks']['items'][result]['album']['images'][1]['url']
             re_string = f"/{song}{artist.title()}"
             redirect = re.sub('[^A-Za-z0-9]+', '', re_string.lower())
             popularity_index.append(popularity)
             unsorted_search_results.append({
                 'name': f"{song} - {artist.title()}",
                 'redirect': f"/download/{redirect}",
-                'popularity': int(popularity),
-                'img_src': img}
+                'popularity': int(popularity)}
             )
             count += 1
             collection4.insert_one(
                 {
                     'name': f"{song} - {artist.title()}",
                     'redirect': redirect,
-                    'img_src': img
                 }
             )
 
