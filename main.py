@@ -273,7 +273,7 @@ def fetchsearchresults():
     query = response['query']
     name = response['name']
     email = response['email']
-#For entry in user database
+    # For entry in user database
     results = collection1.find({'email': email.lower()})
     if results.count() == 0:
         collection1.insert_one({
@@ -299,31 +299,33 @@ def fetchsearchresults():
 
         db_query = {'email': email.lower()}
         collection1.update_one(db_query, document)
-#fetching matches from spotify
+    # fetching matches from spotify
     results = spotify.search(query)
     result_length = len(results['tracks']['items'])
     if result_length == 0:
         flash(f"No matches found!\nfor '{query}'", 'error')
         search_results = []
         length = 0
-        return render_template("search_results.html", search_results=search_results, length = length)
+        return render_template("search_results.html", search_results=search_results, length=length)
     else:
-        search_results = {}
+        unsorted_search_results = []
+        popularity_index = []
         count = 0
         for result in range(result_length):
             song = results['tracks']['items'][result]['album']['name']
             artist = results['tracks']['items'][result]['album']['artists'][0]['name']
+            popularity = results['tracks']['items'][result]['popularity']
             img = results['tracks']['items'][result]['album']['images'][1]['url']
             re_string = f"/{song}{artist.title()}"
             redirect = re.sub('[^A-Za-z0-9]+', '', re_string.lower())
-            search_results[count] = {
+            popularity_index.append(popularity)
+            unsorted_search_results.append({
                 'name': f"{song} - {artist.title()}",
                 'redirect': f"/download/{redirect}",
-                'img_src': img
-            }
+                'popularity': int(popularity),
+                'img_src': img}
+            )
             count += 1
-            length = int(len(search_results))
-            half = int(ceil(length / 2))
             collection4.insert_one(
                 {
                     'name': f"{song} - {artist.title()}",
@@ -331,6 +333,17 @@ def fetchsearchresults():
                     'img_src': img
                 }
             )
+
+        search_results = []
+        for x in popularity_index:
+            max_index = popularity_index.index(max(popularity_index))
+            search_results.insert(-1, unsorted_search_results[max_index])
+            popularity_index.pop(max_index)
+            unsorted_search_results.pop(max_index)
+        top_song = search_results.pop()
+        search_results.insert(0, top_song)
+        length = len(search_results)
+        half = int(ceil(length / 2))
         flash(f"""Click on the required song.""", 'success')
         return render_template("search_results.html", search_results=search_results, length=length, half=half)
 
@@ -340,16 +353,16 @@ def custom_song_path(songname):
     indi_uses = collection6.find()
     for uses in indi_uses:
         use = uses['songs']
-    new_use = use+1
+    new_use = use + 1
     new_doc = {
-        '$set':{
+        '$set': {
             'songs': new_use,
         }
     }
     query = {
         'songs': use
     }
-    collection6.update_one(query,new_doc)
+    collection6.update_one(query, new_doc)
 
     results = collection4.find_one(
         {
