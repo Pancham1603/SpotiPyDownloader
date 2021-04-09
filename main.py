@@ -22,6 +22,7 @@ collection2 = ***REMOVED***
 collection3 = ***REMOVED***
 collection4 = ***REMOVED***
 collection5 = ***REMOVED***
+collection6 = db['individual_song_stats']
 
 
 class SpotifyAPI(object):
@@ -336,6 +337,20 @@ def fetchsearchresults():
 
 @app.route('/download/<path:songname>')
 def custom_song_path(songname):
+    indi_uses = collection6.find()
+    for uses in indi_uses:
+        use = uses['songs']
+    new_use = use+1
+    new_doc = {
+        '$set':{
+            'songs': new_use,
+        }
+    }
+    query = {
+        'songs': use
+    }
+    collection6.update_one(query,new_doc)
+
     results = collection4.find_one(
         {
             'redirect': songname
