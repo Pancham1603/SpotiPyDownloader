@@ -312,7 +312,7 @@ def fetchsearchresults():
         popularity_index = []
         count = 0
         for result in range(result_length):
-            song = results['tracks']['items'][result]['album']['name']
+            song = results['tracks']['items'][result]['name']
             artist = results['tracks']['items'][result]['album']['artists'][0]['name']
             popularity = results['tracks']['items'][result]['popularity']
             img = results['tracks']['items'][result]['album']['images'][1]['url']
