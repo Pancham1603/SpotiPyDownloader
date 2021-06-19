@@ -11,18 +11,18 @@ from pytube import extract
 from pytube import YouTube
 from math import ceil
 
-client_id = '***REMOVED***'
-client_secret = '***REMOVED***'
+client_id = ''
+client_secret = ''
 
 client = pymongo.MongoClient(
-    "***REMOVED***")
-db = ***REMOVED***
-collection1 = ***REMOVED***
-collection2 = ***REMOVED***
-collection3 = ***REMOVED***
-collection4 = ***REMOVED***
-collection5 = ***REMOVED***
-collection6 = db['individual_song_stats']
+    "")
+db = client.
+collection1 = db['']
+collection2 = db['']
+collection3 = db['']
+collection4 = db['']
+collection5 = db['']
+collection6 = db['']
 
 
 class SpotifyAPI(object):
@@ -173,6 +173,14 @@ def initiation():
     # flash(f'{int(song_count)}', 'song-count')
     try:
         results = collection5.find()
+        stats = collection3.find()
+        for stat in stats:
+            users = stat['users']
+            songs = stat['songs']
+            playlists = stat['playlists']
+        flash(f"{songs}", 'songs')
+        flash(f"{playlists}", 'playlists')
+        flash(f"{users}", 'users')
         for result in results:
             try:
                 path = result['path']
@@ -190,7 +198,7 @@ def initiation():
                 )
     except:
         pass
-    return render_template("index.html")
+    return render_template("index.html", songs="songs", users="users", playlists="playlists")
 
 
 @app.route('/queuedownload', methods=['GET', 'POST'])
@@ -404,9 +412,9 @@ def custom_song_path(songname):
             return render_template('error500.html')
 
 
-@app.route("/***REMOVED***")
+@app.route("/")
 def verif():
-    return render_template("***REMOVED***")
+    return render_template("")
 
 
 @app.errorhandler(404)
