@@ -1,35 +1,34 @@
-from flask import request
-import smtplib
 import base64
-import requests
 import datetime
-from urllib.parse import urlencode
-from pytube import extract
-from pytube import request
-from pytube import YouTube
-from youtube_search import YoutubeSearch
 import os
-from zipfile import ZipFile
 import shutil
+import smtplib
 from email.message import EmailMessage
-from pymongo import MongoClient
+from urllib.parse import urlencode
+from zipfile import ZipFile
+
+import requests
+import youtube_dl
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
+from pymongo import MongoClient
+from youtube_search import YoutubeSearch
 
+# import eyed3
 
 gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 
-client_id = '***REMOVED***'
-client_secret = '***REMOVED***'
+client_id = ''
+client_secret = ''
 
 client = MongoClient(
-    "***REMOVED***")
-db = ***REMOVED***
-collection1 = ***REMOVED***
-collection2 = ***REMOVED***
-collection3 = ***REMOVED***
+    "")
+db = client.
+collection1 = db['']
+collection2 = db['']
+collection3 = db['']
 
 
 class SpotifyAPI(object):
@@ -128,40 +127,12 @@ class SpotifyAPI(object):
             'Authorization': f'Bearer {access_token}'
         }
         endpoint = 'https://api.spotify.com/v1/playlists/'
-        append = f"/tracks?market=IN&fields=items(track(name%2Cartists))&limit={num}&offset={offset}"
+        append = f"/tracks?market=ES&fields=items(track(name,artists,album(name,images)))&limit={num}&offset={offset}"
         lookup_url = f"{endpoint}{target_URI}{append}"
         r = requests.get(lookup_url, headers=headers)
         if r.status_code not in range(200, 299):
             return {}
         return r.json()
-
-
-class MyYouTube(YouTube):
-    # https://github.com/nficano/pytube/blob/master/pytube/__main__.py#L150
-    def prefetch(self):
-        """Eagerly download all necessary data.
-
-        Eagerly executes all necessary network requests so all other
-        operations don't does need to make calls outside of the interpreter
-        which blocks for long periods of time.
-
-        :rtype: None
-
-        """
-        self.watch_html = request.get(url=self.watch_url)
-        self.embed_html = request.get(url=self.embed_url)
-        self.age_restricted = extract.is_age_restricted(self.watch_html)
-        self.vid_info_url = extract.video_info_url(
-            video_id=self.video_id,
-            watch_url=self.watch_url,
-            watch_html=self.watch_html,
-            embed_html=self.embed_html,
-            age_restricted=self.age_restricted,
-        )
-        self.vid_info = request.get(self.vid_info_url)
-        if not self.age_restricted:
-            self.js_url = extract.js_url(self.watch_html, self.age_restricted)
-            self.js = request.get(self.js_url)
 
 
 spotify = SpotifyAPI(client_id, client_secret)
@@ -179,6 +150,10 @@ while True:
         num = int(user['length_req'])
         if num > 100:
             songs = []
+            images = []
+            album_names = []
+            artist_names = []
+            track_names = []
             loops_req = int(user['length_req']) // 100 + 1
             offset = 0
             for loop in range(loops_req):
@@ -194,19 +169,35 @@ while True:
                         try:
                             track_name = data['items'][item]['track']['name']
                             artist_name = data['items'][item]['track']['artists'][0]['name']
+                            image = data['items'][item]['track']['album']['images'][1]['url']
+                            album_name = data['items'][item]['track']['album']['name']
                             songs.append(f'{track_name} - {artist_name}')
+                            images.append(image)
+                            album_names.append(album_name)
+                            artist_names.append(artist_name)
+                            track_names.append(track_name)
                             success = True
                         except IndexError:
                             pass
                 offset += 100
         else:
             songs = []
+            images = []
+            album_names = []
+            artist_names = []
+            track_names = []
             data = spotify.playlist(link=user['link'], num=num, offset=0)
             for item in range(num):
                 try:
                     track_name = data['items'][item]['track']['name']
                     artist_name = data['items'][item]['track']['artists'][0]['name']
+                    image = data['items'][item]['track']['album']['images'][1]['url']
+                    album_name = data['items'][item]['track']['album']['name']
                     songs.append(f'{track_name} - {artist_name}')
+                    images.append(image)
+                    album_names.append(album_name)
+                    artist_names.append(artist_name)
+                    track_names.append(track_name)
                     success = True
                 except IndexError:
                     pass
@@ -222,39 +213,60 @@ while True:
                 pass
         base = 'https://www.youtube.com'
         for song in songs:
+            index = songs.index(song)
+            success = False
             try:
+
+
+
                 print(f"Downloading: {song}")
                 result = YoutubeSearch(song, max_results=1).to_dict()
                 suffix = result[0]['url_suffix']
                 link = base + suffix
-                out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
-                base, ext = os.path.splitext(out_file)
-                new_file = base + '.mp3'
-                os.rename(out_file, new_file)
+                song = "".join(x for x in song if (x.isalnum() or x in "._- "))
+                ydl_opts = {
+                    'format': 'bestaudio/best',
+                    'outtmpl': f'{directory}/{song}.%(ext)s',
+                    'postprocessors': [{
+                        'key': 'FFmpegExtractAudio',
+                        'preferredcodec': 'mp3',
+                        'preferredquality': '192',
+                    }],
+                }
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([link])
+                # success = True
+            except FileExistsError:
+                # success = True
+                pass
             except:
-                print(f"Downloading again: {song}")
                 try:
-                    print(f"Downloading: {song}")
+                    print(f"Downloading again: {song}")
                     result = YoutubeSearch(song, max_results=1).to_dict()
                     suffix = result[0]['url_suffix']
                     link = base + suffix
-                    out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
-                    base, ext = os.path.splitext(out_file)
-                    new_file = base + '.mp3'
-                    os.rename(out_file, new_file)
+                    song = "".join(x for x in song if (x.isalnum() or x in "._- "))
+                    ydl_opts = {
+                        'format': 'bestaudio/best',
+                        'outtmpl': f'{directory}/{song}.%(ext)s',
+                        'postprocessors': [{
+                            'key': 'FFmpegExtractAudio',
+                            'preferredcodec': 'mp3',
+                            'preferredquality': '192',
+                        }],
+                    }
+                    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                        ydl.download([link])
                 except:
-                    print(f"Downloading again: {song}")
-                    try:
-                        print(f"Downloading: {song}")
-                        result = YoutubeSearch(song, max_results=1).to_dict()
-                        suffix = result[0]['url_suffix']
-                        link = base + suffix
-                        out_file = MyYouTube(link).streams.filter(only_audio=True).first().download(directory)
-                        base, ext = os.path.splitext(out_file)
-                        new_file = base + '.mp3'
-                        os.rename(out_file, new_file)
-                    except:
-                        print(f"Download failed: {song}")
+                    print(f"Download failed: {song}")
+            # if success:
+            #     audiofile = eyed3.load(f"{directory}\{song}.mp3")
+            #     audiofile.tag.artist = artist_names[index]
+            #     audiofile.tag.album = album_names[index]
+            #     audiofile.tag.title = track_names[index]
+            #     audiofile.tag.track_num = int(index+1)
+            #     audiofile.tag.images = images[index]
+            #     audiofile.tag.save()
 
         print(f"Playlist for {user['name']} downloaded successfully!")
         file_paths = []
@@ -271,7 +283,7 @@ while True:
             {
                 'title': f"{user['email'].lower()}.zip",
                 'parents': [{'kind': 'drive#fileLink',
-                             'id': "***REMOVED***"}]
+                             'id': ""}]
             }
         )
         file.SetContentFile(f"{user['email'].lower()}.zip")
@@ -293,7 +305,7 @@ while True:
 
         message = EmailMessage()
         message['subject'] = 'Download Complete - SpotiPy Downloader'
-        message['from'] = '***REMOVED***'
+        message['from'] = ''
         message['to'] = user['email'].lower()
         html_message = """
 <!DOCTYPE html>
@@ -368,7 +380,7 @@ padding-top: 10px;
 <h1 cl#ass="heading">SpotiPy Downloader</h1>
 <p>Download Link: <a href="{file_url}">{file_url}</a> </p>
 <p>The file will be available on the above link for 24hours.</p>
-<p>Hey {name.title()}! Your playlist is ready. Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
+<p>Hey {name.title()}! Your playlist is read Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
 </p>
 <div class="form">
 <form action="https://forms.gle/33zWczLqooorKUiA8">
@@ -381,12 +393,12 @@ padding-top: 10px;
 </html>
 """
         message.add_alternative(html_message, subtype='html')
-        password = "***REMOVED***"
+        password = ""
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login('***REMOVED***', password)
-        server.sendmail('***REMOVED***', user['email'].lower(), message.as_string())
+        server.login('', password)
+        server.sendmail('', user['email'].lower(), message.as_string())
         server.quit()
         print("Link mailed")
         try:
