@@ -4,17 +4,16 @@ import requests
 import datetime
 from urllib.parse import urlencode
 import os
-import pymongo
+from pymongo import MongoClient
 import re
 from youtube_search import YoutubeSearch
-from pytube import extract
-from pytube import YouTube
+import youtube_dl
 from math import ceil
 
 client_id = ''
 client_secret = ''
 
-client = pymongo.MongoClient(
+client = MongoClient(
     "")
 db = client.
 collection1 = db['']
@@ -127,34 +126,6 @@ class SpotifyAPI(object):
         return r.json()
 
 
-class MyYouTube(YouTube):
-    # https://github.com/nficano/pytube/blob/master/pytube/__main__.py#L150
-    def prefetch(self):
-        """Eagerly download all necessary data.
-
-        Eagerly executes all necessary network requests so all other
-        operations don't does need to make calls outside of the interpreter
-        which blocks for long periods of time.
-
-        :rtype: None
-
-        """
-        self.watch_html = request.get(url=self.watch_url)
-        self.embed_html = request.get(url=self.embed_url)
-        self.age_restricted = extract.is_age_restricted(self.watch_html)
-        self.vid_info_url = extract.video_info_url(
-            video_id=self.video_id,
-            watch_url=self.watch_url,
-            watch_html=self.watch_html,
-            embed_html=self.embed_html,
-            age_restricted=self.age_restricted,
-        )
-        self.vid_info = request.get(self.vid_info_url)
-        if not self.age_restricted:
-            self.js_url = extract.js_url(self.watch_html, self.age_restricted)
-            self.js = request.get(self.js_url)
-
-
 app = Flask(__name__)
 app.secret_key = 'demo'
 spotify = SpotifyAPI(client_id, client_secret)
@@ -162,25 +133,19 @@ spotify = SpotifyAPI(client_id, client_secret)
 
 @app.route('/home')
 @app.route('/')
-def initiation():
-    stats = collection3.find()
-    for stat in stats:
-        user_count = stat['users']
-        song_count = stat['songs']
-        playlist_count = stat['playlists']
+def home():
+    # stats = collection3.find()
+    # for stat in stats:
+    #     user_count = stat['users']
+    #     song_count = stat['songs']
+    #     playlist_count = stat['playlists']
     # flash(f'{int(user_count)}', 'user-count')
     # flash(f'{int(playlist_count)}', 'playlist-count')
     # flash(f'{int(song_count)}', 'song-count')
     try:
         results = collection5.find()
-        stats = collection3.find()
-        for stat in stats:
-            users = stat['users']
-            songs = stat['songs']
-            playlists = stat['playlists']
-        flash(f"{songs}", 'songs')
-        flash(f"{playlists}", 'playlists')
-        flash(f"{users}", 'users')
+        # stats = collection3.find()
+
         for result in results:
             try:
                 path = result['path']
@@ -279,42 +244,13 @@ def fetchsearchresults():
     spotify = SpotifyAPI(client_id, client_secret)
     response = request.form
     query = response['query']
-    name = response['name']
-    email = response['email']
-    # For entry in user database
-    results = collection1.find({'email': email.lower()})
-    if results.count() == 0:
-        collection1.insert_one({
-            'name': name,
-            'email': email.lower(),
-            'request': {
-                'search_query': query,
-                'time': datetime.datetime.now()
-            },
-            'uses': 1
-        })
-    elif results.count() != 0:
-        for result in results:
-            use = result['uses'] + 1
 
-        document = {'$set':
-            {f'request{use}': {
-                'search_query': query,
-                'time': datetime.datetime.now()
-            },
-                'uses': use}
-        }
-
-        db_query = {'email': email.lower()}
-        collection1.update_one(db_query, document)
     # fetching matches from spotify
     results = spotify.search(query)
     result_length = len(results['tracks']['items'])
     if result_length == 0:
         flash(f"No matches found!\nfor '{query}'", 'error')
-        search_results = []
-        length = 0
-        return render_template("search_results.html", search_results=search_results, length=length)
+        return render_template("index.html")
     else:
         unsorted_search_results = []
         popularity_index = []
@@ -375,41 +311,31 @@ def custom_song_path(songname):
         }
     )
     song = results['name']
-    img = results['img_src']
     base = 'https://www.youtube.com'
     try:
         print(f"Downloading: {song}")
         result = YoutubeSearch(song, max_results=1).to_dict()
         suffix = result[0]['url_suffix']
         link = base + suffix
-        out_file = MyYouTube(link).streams.filter(only_audio=True).first().download()
-        base, ext = os.path.splitext(out_file)
-        new_file = base + '.mp3'
-        os.rename(out_file, new_file)
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': f'{song}.%(ext)s',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+        }
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([link])
         collection5.insert_one(
             {
-                'path': new_file
+                'path': f'{song}.mp3'
             }
         )
-        return send_file(new_file, mimetype='audio/mpeg', as_attachment=True, attachment_filename=f"{song}.mp3")
+        return send_file(f'{song}.mp3', mimetype='audio/mpeg', as_attachment=True, attachment_filename=f"{song}.mp3")
     except:
-        try:
-            print(f"Downloading: {song}")
-            result = YoutubeSearch(song, max_results=1).to_dict()
-            suffix = result[0]['url_suffix']
-            link = base + suffix
-            out_file = MyYouTube(link).streams.filter(only_audio=True).first().download()
-            base, ext = os.path.splitext(out_file)
-            new_file = base + '.mp3'
-            os.rename(out_file, new_file)
-            collection5.insert_one(
-                {
-                    'path': new_file
-                }
-            )
-            return send_file(new_file, mimetype='audio/mpeg', as_attachment=True, attachment_filename=f"{song}.mp3")
-        except:
-            return render_template('error500.html')
+        return render_template('error500.html')
 
 
 @app.route("/")

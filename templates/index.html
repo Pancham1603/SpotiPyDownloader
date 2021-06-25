@@ -354,32 +354,17 @@ body, button, input {
             <div class="app-title">
             <span><a href="/" class="title">SpotiPy</a></span>
             <span><a href="/" class="title">Downloader</a></span>
+
           </div>
           <div class="screen-body-item-left">
           <form class="app-form" method="POST" action="/fetchsearchresults">
-            <div class="app-form-group">
-              <input class="app-form-control-left" name="name" placeholder="NAME" required>
-            </div>
-            <div class="app-form-group">
-              <input class="app-form-control-left" name="email" placeholder="EMAIL" type="email" required>
-            </div>
-            <div class="app-form-group">
-              <input class="app-form-control-left" name="query" placeholder="FIND SONGS/ARTISTS" required>
+            <div class="app-form-group message">
+              <input class="app-form-control" name="query" type="text" placeholder="SEARCH SONG/ARTIST" required>
             </div>
             <div class="app-form-group buttons">
               <button type="submit" class="app-form-button">SEARCH</button>
             </div>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <h4 class="{{ category }}">{{ message }}</h4>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-        </form>
-        <script>
-          </script>
-        </div>
+        </form></div>
           <div class="app-contact">MADE WITH ❤ BY <a class="mail" href="mailto:pancham1603@gmail.com">PANCHAM AGARWAL</a> </div>
         </div>
         <div class="screen-body-item">

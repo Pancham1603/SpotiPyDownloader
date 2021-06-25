@@ -6,7 +6,6 @@ import smtplib
 from email.message import EmailMessage
 from urllib.parse import urlencode
 from zipfile import ZipFile
-
 import requests
 import youtube_dl
 from pydrive.auth import GoogleAuth
@@ -217,8 +216,6 @@ while True:
             success = False
             try:
 
-
-
                 print(f"Downloading: {song}")
                 result = YoutubeSearch(song, max_results=1).to_dict()
                 suffix = result[0]['url_suffix']
@@ -305,7 +302,7 @@ while True:
 
         message = EmailMessage()
         message['subject'] = 'Download Complete - SpotiPy Downloader'
-        message['from'] = ''
+        message['from'] = '@gmail.com'
         message['to'] = user['email'].lower()
         html_message = """
 <!DOCTYPE html>
@@ -380,7 +377,7 @@ padding-top: 10px;
 <h1 cl#ass="heading">SpotiPy Downloader</h1>
 <p>Download Link: <a href="{file_url}">{file_url}</a> </p>
 <p>The file will be available on the above link for 24hours.</p>
-<p>Hey {name.title()}! Your playlist is read Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
+<p>Hey {name.title()}! Your playlist is ready Thank you for using SpotiPy Downloader. I'd love to know how you found the <br>experience of using the service so would like to invite you to rate on <a href="https://forms.gle/33zWczLqooorKUiA8">Google Forms</a><br> - it'll only take a few clicks and will be invaluable to me!
 </p>
 <div class="form">
 <form action="https://forms.gle/33zWczLqooorKUiA8">
@@ -397,8 +394,8 @@ padding-top: 10px;
         server = smtplib.SMTP('smtp.gmail.com:587')
         server.ehlo()
         server.starttls()
-        server.login('', password)
-        server.sendmail('', user['email'].lower(), message.as_string())
+        server.login('@gmail.com', password)
+        server.sendmail('@gmail.com', user['email'].lower(), message.as_string())
         server.quit()
         print("Link mailed")
         try:
